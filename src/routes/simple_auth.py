@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from src.database.main import get_db
 from src.models.user import User
+from src.middleware.jwt_token import create_token
 
 router = APIRouter(prefix="/api/v2/auth", tags=["auth"])
 
@@ -90,6 +91,7 @@ async def login(
                 "learn_lang": user.learn_lang,
                 "has_profile": False,
                 "is_new_user": True,
+                "token": create_token(user.id, user.username),
             }
         }
 
@@ -107,6 +109,7 @@ async def login(
             "current_level": user.current_level,
             "has_profile": has_profile,
             "is_new_user": not has_profile,
+                "token": create_token(user.id, user.username),
         }
     }
 
@@ -166,5 +169,6 @@ async def save_profile(
             "current_level": user.current_level,
             "has_profile": True,
             "is_new_user": False,
+                "token": create_token(user.id, user.username),
         }
     }

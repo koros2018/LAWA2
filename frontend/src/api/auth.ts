@@ -31,6 +31,7 @@ export interface LoginResult {
   current_level?: string | null
   has_profile: boolean
   is_new_user: boolean
+  token: string  // JWT token
 }
 
 export interface ProfileResult {
@@ -42,6 +43,7 @@ export interface ProfileResult {
   interests: string[]
   current_level: string | null
   is_new_user: boolean
+  token: string  // JWT token
 }
 
 export async function login(username: string, nativeLang: string): Promise<LoginResult> {
