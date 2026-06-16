@@ -1,43 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
-interface SystemStats {
-  user_count: number
-  active_users_today: number
-  total_habit_events: number
-  today_habit_events: number
-  active_configs: number
-  db_size_bytes: number
-}
-
-interface UserData {
-  id: string
-  username: string
-  display_name: string | null
-  native_lang: string
-  learn_lang: string
-  current_level: string | null
-  habit_level: number
-  growth_xp: number
-  streak_days: number
-  bridge_level: number
-  is_active: boolean
-  interests: string[]
-  created_at: string
-  updated_at: string
-}
-
-interface UsersResponse {
-  users: UserData[]
-  total: number
-  limit: number
-  offset: number
-}
+import {
+  getAdminStats,
+  getAdminUsers,
+  toggleAdminUser,
+  type SystemStats,
+  type UserAdmin,
+  type UsersListResponse,
+} from '@/api/admin'
 
 const activeTab = ref<'stats' | 'users'>('stats')
 const stats = ref<SystemStats | null>(null)
 const statsLoading = ref(true)
-const users = ref<UserData[]>([])
+const users = ref<UserAdmin[]>([])
 const usersTotal = ref(0)
 const usersLoading = ref(false)
 const searchQuery = ref('')
@@ -45,18 +20,10 @@ const userOffset = ref(0)
 const USERS_PAGE_SIZE = 20
 const togglingId = ref<string | null>(null)
 
-async function apiFetch<T>(url: string, opts?: RequestInit): Promise<T> {
-  const res = await fetch(url, opts)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const json = await res.json()
-  if (json.status !== 'ok') throw new Error(json.detail || 'API error')
-  return json.data as T
-}
-
 async function loadStats() {
   statsLoading.value = true
   try {
-    stats.value = await apiFetch<SystemStats>('/api/v2/admin/stats')
+    stats.value = await getAdminStats()
   } catch (e: any) {
     console.error('Failed to load stats:', e)
   } finally {
@@ -68,9 +35,7 @@ async function loadUsers(append = false) {
   if (!append) userOffset.value = 0
   usersLoading.value = true
   try {
-    const params = new URLSearchParams({ limit: String(USERS_PAGE_SIZE), offset: String(userOffset.value) })
-    if (searchQuery.value) params.set('search', searchQuery.value)
-    const data = await apiFetch<UsersResponse>(`/api/v2/admin/users?${params}`)
+    const data = await getAdminUsers(USERS_PAGE_SIZE, userOffset.value, searchQuery.value || undefined)
     users.value = append ? [...users.value, ...data.users] : data.users
     usersTotal.value = data.total
     userOffset.value += USERS_PAGE_SIZE
@@ -84,7 +49,7 @@ async function loadUsers(append = false) {
 async function toggleUser(userId: string) {
   togglingId.value = userId
   try {
-    const updated = await apiFetch<UserData>(`/api/v2/admin/users/${userId}/toggle`, { method: 'POST' })
+    const updated = await toggleAdminUser(userId)
     const idx = users.value.findIndex(u => u.id === userId)
     if (idx >= 0) users.value[idx] = updated
   } catch (e: any) {
@@ -98,7 +63,10 @@ function searchUsers() { loadUsers(false) }
 
 function formatDate(iso: string): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleDateString('zh-CN', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  })
 }
 
 function formatSize(bytes: number): string {
