@@ -61,6 +61,7 @@ const quickActions = [
         </span>
       </div>
       <h1 class="hero-title">你的语言<br/>正在生长</h1>
+      <p class="hero-subtitle-en">Your Language · Growing Naturally</p>
       <p class="hero-subtitle">
         语言能力不是练出来的，是养出来的。<br/>
         每一天的信息流，都是浇灌。
@@ -91,7 +92,7 @@ const quickActions = [
 
     <!-- 快速行动 -->
     <section class="quick-actions">
-      <h2 class="section-title">来点微行动</h2>
+      <h2 class="section-title">来点微行动 · Micro Actions</h2>
       <div class="action-grid">
         <button
           v-for="act in quickActions"
@@ -118,6 +119,7 @@ const quickActions = [
 
     <section class="feed-preview" v-if="feed">
       <h2 class="section-title">今日信息流 · Today's Feed</h2>
+      <p class="section-subtitle">Daily content curated for your level</p>
       <div class="divider"></div>
       <div class="feed-item">
         <div class="feed-meta">
@@ -186,6 +188,20 @@ const quickActions = [
   margin-top: var(--space-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.hero-subtitle-en {
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  font-style: italic;
+  margin-bottom: var(--space-sm);
+}
+
+.section-subtitle {
+  font-size: var(--fs-small);
+  color: var(--text-tertiary);
+  margin-top: calc(-1 * var(--space-lg));
+  margin-bottom: var(--space-lg);
 }
 
 .stat-skel {
