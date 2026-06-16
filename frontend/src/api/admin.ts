@@ -8,6 +8,8 @@
  *   GET  /api/v2/admin/stats        系统统计
  */
 
+import { apiGet, apiPost } from './client'
+
 export interface SystemStats {
   user_count: number
   active_users_today: number
@@ -43,16 +45,8 @@ export interface UsersListResponse {
 
 const BASE = '/api/v2/admin'
 
-async function apiFetch<T>(url: string, opts?: RequestInit): Promise<T> {
-  const res = await fetch(url, opts)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const json = await res.json()
-  if (json.status !== 'ok') throw new Error(json.detail || 'API error')
-  return json.data as T
-}
-
 export async function getAdminStats(): Promise<SystemStats> {
-  return apiFetch<SystemStats>(`${BASE}/stats`)
+  return apiGet<SystemStats>(`${BASE}/stats`)
 }
 
 export async function getAdminUsers(
@@ -62,13 +56,13 @@ export async function getAdminUsers(
 ): Promise<UsersListResponse> {
   const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
   if (search) params.set('search', search)
-  return apiFetch<UsersListResponse>(`${BASE}/users?${params}`)
+  return apiGet<UsersListResponse>(`${BASE}/users?${params}`)
 }
 
 export async function getAdminUserDetail(userId: string): Promise<UserAdmin> {
-  return apiFetch<UserAdmin>(`${BASE}/users/${userId}`)
+  return apiGet<UserAdmin>(`${BASE}/users/${userId}`)
 }
 
 export async function toggleAdminUser(userId: string): Promise<UserAdmin> {
-  return apiFetch<UserAdmin>(`${BASE}/users/${userId}/toggle`, { method: 'POST' })
+  return apiPost<UserAdmin>(`${BASE}/users/${userId}/toggle`)
 }

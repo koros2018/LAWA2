@@ -1,125 +1,72 @@
 /**
  * LAWA2 — 事项提醒 Agent API 封装
  */
+
+import { apiGet, apiPost, apiPut, apiDelete, getUserId } from './client'
+
 const BASE = '/api/v2/reminder'
-
-interface ApiResponse<T> {
-  status: string
-  data: T
-  message?: string
-}
-
-function getUserId(): string {
-  try {
-    const raw = localStorage.getItem('lawa2_session')
-    if (!raw) return 'test_user'
-    const s = JSON.parse(raw)
-    return s?.userId || 'test_user'
-  } catch {
-    return 'test_user'
-  }
-}
-
-async function fetchData<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  })
-  const json: ApiResponse<T> = await res.json()
-  if (json.status !== 'ok') throw new Error(json.message || 'API error')
-  return json.data
-}
-
-// ── 类型 ──
 
 export interface ReminderEvent {
   id: string
+  user_id: string
   title: string
-  title_en: string
-  event_date: string
-  event_type: string
-  note: string | null
-  note_en: string | null
-  culture_background: string | null
-  culture_background_en: string | null
-  is_done: boolean
+  description: string
+  date: string
+  event_type: 'user' | 'holiday'
   is_recurring: boolean
-  recurring_rule: string | null
+  created_at: string
+  updated_at: string
 }
 
-export interface GreetingData {
-  zh: string
-  en: string
+export interface Holiday {
+  date: string
+  name_zh: string
+  name_en: string
+  type: string
 }
 
-// ── API ──
+export interface GreetingResult {
+  greeting_zh: string
+  greeting_en: string
+}
 
-export async function getEvents(
-  startDate?: string,
-  endDate?: string,
-  eventType?: string,
-): Promise<ReminderEvent[]> {
-  const params = new URLSearchParams({ user_id: getUserId() })
+// ── 事件 CRUD ──
+
+export async function getEvents(userId: string, startDate?: string, endDate?: string): Promise<ReminderEvent[]> {
+  const params = new URLSearchParams({ user_id: userId })
   if (startDate) params.set('start_date', startDate)
   if (endDate) params.set('end_date', endDate)
-  if (eventType) params.set('event_type', eventType)
-  return fetchData(`${BASE}/events?${params}`)
+  return apiGet<ReminderEvent[]>(`${BASE}/events?${params}`)
 }
 
-export async function getEvent(id: string): Promise<ReminderEvent> {
-  return fetchData(`${BASE}/events/${id}?user_id=${getUserId()}`)
+export async function createEvent(userId: string, data: { title: string; description: string; date: string }): Promise<ReminderEvent> {
+  return apiPost<ReminderEvent>(`${BASE}/events?user_id=${userId}`, data)
 }
 
-export async function createEvent(data: {
-  title: string
-  title_en?: string
-  event_date: string
-  event_type?: string
-  note?: string
-  note_en?: string
-  is_recurring?: boolean
-  recurring_rule?: string
-}): Promise<{ id: string }> {
-  return fetchData(`${BASE}/events?user_id=${getUserId()}`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+export async function updateEvent(eventId: string, data: { title?: string; description?: string; date?: string }): Promise<ReminderEvent> {
+  return apiPut<ReminderEvent>(`${BASE}/events/${eventId}`, data)
 }
 
-export async function updateEvent(
-  id: string,
-  data: Partial<ReminderEvent>,
-): Promise<void> {
-  await fetch(`${BASE}/events/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
+export async function deleteEvent(eventId: string): Promise<void> {
+  await apiDelete<void>(`${BASE}/events/${eventId}`)
 }
 
-export async function deleteEvent(id: string): Promise<void> {
-  await fetch(`${BASE}/events/${id}`, { method: 'DELETE' })
+export async function getTodayEvents(userId: string): Promise<ReminderEvent[]> {
+  return apiGet<ReminderEvent[]>(`${BASE}/today?user_id=${userId}`)
 }
 
-export async function getUpcoming(days = 7): Promise<ReminderEvent[]> {
-  return fetchData(`${BASE}/upcoming?user_id=${getUserId()}&days=${days}`)
+export async function getUpcomingEvents(userId: string, days: number = 7): Promise<ReminderEvent[]> {
+  return apiGet<ReminderEvent[]>(`${BASE}/upcoming?user_id=${userId}&days=${days}`)
 }
 
-export async function getToday(): Promise<ReminderEvent[]> {
-  return fetchData(`${BASE}/today?user_id=${getUserId()}`)
+export async function getHolidays(year: number): Promise<Holiday[]> {
+  return apiGet<Holiday[]>(`${BASE}/holidays?year=${year}`)
 }
 
-export async function getHolidays(year?: number): Promise<ReminderEvent[]> {
-  const params = year ? `?year=${year}` : ''
-  return fetchData(`${BASE}/holidays${params}`)
+export async function generateGreeting(eventId: string, userName: string): Promise<GreetingResult> {
+  return apiPost<GreetingResult>(`${BASE}/generate-greeting?event_id=${eventId}&user_name=${encodeURIComponent(userName)}`)
 }
 
-export async function generateGreeting(
-  eventId: string,
-  userName = '你',
-): Promise<GreetingData> {
-  return fetchData(
-    `${BASE}/generate-greeting?event_id=${eventId}&user_name=${encodeURIComponent(userName)}`,
-    { method: 'POST' },
-  )
+export async function seedHolidays(): Promise<void> {
+  await apiPost<void>(`${BASE}/seed-holidays`)
 }

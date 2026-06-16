@@ -38,6 +38,12 @@ export function clearSession() {
   session.user = null
 }
 
+/** 退出登录（清除 session + 跳转） */
+export function logout() {
+  clearSession()
+  window.location.href = '/login'
+}
+
 const saved = loadSession()
 
 export const session = reactive<{ user: UserSession | null }>({

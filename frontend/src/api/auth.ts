@@ -2,24 +2,7 @@
  * LAWA2 — 简化登录 API
  */
 
-const API_BASE = '/api/v2/auth'
-
-interface ApiResponse<T> {
-  status: string
-  data: T
-}
-
-async function api<T>(path: string, body: Record<string, unknown>): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) throw new Error(`API error: ${res.status}`)
-  const json: ApiResponse<T> = await res.json()
-  if (json.status !== 'ok') throw new Error('API unavailable')
-  return json.data
-}
+import { apiPost } from './client'
 
 export interface LoginResult {
   user_id: string
@@ -31,7 +14,7 @@ export interface LoginResult {
   current_level?: string | null
   has_profile: boolean
   is_new_user: boolean
-  token: string  // JWT token
+  token: string
 }
 
 export interface ProfileResult {
@@ -43,11 +26,13 @@ export interface ProfileResult {
   interests: string[]
   current_level: string | null
   is_new_user: boolean
-  token: string  // JWT token
+  token: string
 }
 
+const BASE = '/api/v2/auth'
+
 export async function login(username: string, nativeLang: string): Promise<LoginResult> {
-  return api<LoginResult>('/login', { username, native_lang: nativeLang })
+  return apiPost<LoginResult>(`${BASE}/login`, { username, native_lang: nativeLang })
 }
 
 export async function saveProfile(data: {
@@ -58,5 +43,5 @@ export async function saveProfile(data: {
   interests: string[]
   current_level: string | null
 }): Promise<ProfileResult> {
-  return api<ProfileResult>('/profile', data)
+  return apiPost<ProfileResult>(`${BASE}/profile`, data)
 }
