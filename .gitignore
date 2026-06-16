@@ -37,3 +37,8 @@ frontend/test-results/
 # Test images
 frontend/public/lawa-bridge-final-*.png
 frontend/public/preview.html
+
+# Uploads
+uploads/
+# Duplicate main.py symlink
+main.py

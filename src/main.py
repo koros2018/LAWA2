@@ -14,6 +14,7 @@ from src.routes.habit import router as habit_router
 from src.routes.simple_auth import router as simple_auth_router
 from src.routes.bridge import router as bridge_router
 from src.routes.reminder import router as reminder_router
+from src.routes.photo import router as photo_router
 import src.models  # 确保所有模型在 init_db 前注册
 
 
@@ -53,6 +54,7 @@ app.include_router(habit_router)
 app.include_router(simple_auth_router)
 app.include_router(bridge_router)
 app.include_router(reminder_router)
+app.include_router(photo_router)
 
 
 # ── 健康检查 ──
