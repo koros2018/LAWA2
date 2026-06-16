@@ -37,6 +37,9 @@ class User(Base):
     streak_days: Mapped[int] = mapped_column(Integer, default=0)
     last_feed_date: Mapped[datetime] = mapped_column(Date, nullable=True)
     
+    # 双向桥梁
+    bridge_level: Mapped[int] = mapped_column(Integer, default=0)
+    
     # 元数据
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)

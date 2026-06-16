@@ -38,9 +38,9 @@ def get_trigger_engine() -> TriggerEngine:
 def get_investment_engine() -> InvestmentEngine:
     return InvestmentEngine()
 
-async def get_current_user_id() -> str:
-    """简化版：从请求上下文获取 user_id（后续接入真实 auth）"""
-    return "default_user"
+async def get_current_user_id(user_id: str = "default_user") -> str:
+    """从请求参数获取 user_id"""
+    return user_id
 
 
 # ── 请求/响应模型 ──
@@ -66,6 +66,11 @@ class UpdateConfigRequest(BaseModel):
     morning_time: Optional[str] = None
     noon_time: Optional[str] = None
     evening_time: Optional[str] = None
+
+
+class UpdateSocialLevelRequest(BaseModel):
+    vocab_id: str
+    new_level: str  # understand|use|create
 
 
 # ── 路由 ──
@@ -194,6 +199,56 @@ async def get_garden(
     }
 
 
+# ── 社交场景路由 ──
+
+@router.get("/social/scene")
+async def get_social_scene(
+    category: str = "net_slang",
+    lang_direction: str = "zh",
+    engine: TriggerEngine = Depends(get_trigger_engine),
+    user_id: str = Depends(get_current_user_id),
+):
+    """获取一条社交场景内容"""
+    result = await engine.get_social_scene(user_id, lang_direction, category)
+    return {"status": "ok", "data": result}
+
+
+@router.get("/social/adaptive")
+async def get_adaptive_scene(
+    lang_direction: str = "zh",
+    engine: TriggerEngine = Depends(get_trigger_engine),
+    user_id: str = Depends(get_current_user_id),
+):
+    """根据用户社交理解度获取合适场景"""
+    result = await engine.get_social_scene_by_level(user_id, lang_direction)
+    return {"status": "ok", "data": result}
+
+
+@router.post("/social/level")
+async def update_social_level(
+    req: UpdateSocialLevelRequest,
+    engine: TriggerEngine = Depends(get_trigger_engine),
+    user_id: str = Depends(get_current_user_id),
+):
+    """更新社交词汇理解等级"""
+    ok = await engine.update_social_understanding(
+        user_id, req.vocab_id, req.new_level
+    )
+    if not ok:
+        raise HTTPException(status_code=404, detail="Vocab not found")
+    return {"status": "ok"}
+
+
+@router.get("/social/progress")
+async def get_social_progress(
+    engine: TriggerEngine = Depends(get_trigger_engine),
+    user_id: str = Depends(get_current_user_id),
+):
+    """获取社交学习进度"""
+    result = await engine.get_social_progress(user_id)
+    return {"status": "ok", "data": result}
+
+
 @router.get("/milestones")
 async def list_milestones(
     engine: InvestmentEngine = Depends(get_investment_engine),
@@ -225,4 +280,44 @@ async def list_assets(
 ):
     """获取语言资产列表"""
     result = await engine.get_assets(user_id, asset_type, limit)
+    return {"status": "ok", "data": result}
+
+
+@router.get("/garden/vocab-details")
+async def get_garden_vocab_details(
+    engine: InvestmentEngine = Depends(get_investment_engine),
+    user_id: str = Depends(get_current_user_id),
+):
+    """获取词汇明细（含社交词汇分类统计）"""
+    result = await engine.get_vocab_details(user_id)
+    return {"status": "ok", "data": result}
+
+
+@router.get("/garden/growth")
+async def get_garden_growth(
+    engine: InvestmentEngine = Depends(get_investment_engine),
+    user_id: str = Depends(get_current_user_id),
+):
+    """获取成长曲线数据"""
+    result = await engine.get_growth_curve(user_id)
+    return {"status": "ok", "data": result}
+
+
+@router.get("/garden/report")
+async def get_garden_report(
+    engine: InvestmentEngine = Depends(get_investment_engine),
+    user_id: str = Depends(get_current_user_id),
+):
+    """获取花园周报"""
+    result = await engine.get_garden_report(user_id)
+    return {"status": "ok", "data": result}
+
+
+@router.get("/garden/health")
+async def get_health_insights(
+    engine: InvestmentEngine = Depends(get_investment_engine),
+    user_id: str = Depends(get_current_user_id),
+):
+    """获取习惯健康度洞察"""
+    result = await engine.get_health_insights(user_id)
     return {"status": "ok", "data": result}

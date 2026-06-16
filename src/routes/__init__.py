@@ -1,1 +1,1 @@
-"""LAWA2 路由"""
+# LAWA2 routes — 不自动导入，由 main.py 按需引用

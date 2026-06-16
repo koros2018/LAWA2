@@ -110,6 +110,22 @@ class LLMService:
             settings.llm_opencode_model,
         )
 
+        # DeepSeek
+        self._add_provider(
+            "deepseek",
+            settings.llm_deepseek_key,
+            settings.llm_deepseek_base_url,
+            settings.llm_deepseek_model,
+        )
+
+        # SenseNova (商汤)
+        self._add_provider(
+            "sensenova",
+            settings.llm_sensenova_key,
+            settings.llm_sensenova_base_url,
+            settings.llm_sensenova_model,
+        )
+
         # Ollama 始终可用（兜底）
         self._clients["ollama"] = AsyncOpenAI(
             api_key="ollama",
@@ -122,14 +138,6 @@ class LLMService:
             "model": settings.ollama_model,
         }
         logger.info(f"✅ LLM Provider: ollama ({settings.ollama_host}) model={settings.ollama_model}")
-
-        # DeepSeek
-        self._add_provider(
-            "deepseek",
-            settings.llm_deepseek_key,
-            settings.llm_deepseek_base_url,
-            settings.llm_deepseek_model,
-        )
 
         if not self._provider_configs:
             logger.warning("⚠️ 未配置任何云LLM提供商，将仅使用Ollama本地模型")
@@ -152,8 +160,8 @@ class LLMService:
 
     @property
     def default_provider(self) -> str:
-        """默认提供商（优先云LLM）"""
-        for p in ["longcat", "opencode"]:
+        """默认提供商（优先 SenseNova）"""
+        for p in ["sensenova", "longcat", "opencode"]:
             if p in self._clients:
                 return p
         return "ollama"
@@ -165,16 +173,16 @@ class LLMService:
 
     # ── 任务 → 提供商的路由策略 ──
     TASK_ROUTING = {
-        "assessment": ["longcat", "opencode", "ollama"],
-        "companion": ["longcat", "opencode", "ollama"],
-        "correction": ["longcat", "opencode", "ollama"],
-        "planning": ["opencode", "longcat", "ollama"],
-        "simple": ["opencode", "longcat", "ollama"],
+        "assessment": ["sensenova", "longcat", "opencode", "ollama"],
+        "companion": ["sensenova", "longcat", "opencode", "ollama"],
+        "correction": ["sensenova", "longcat", "opencode", "ollama"],
+        "planning": ["sensenova", "opencode", "longcat", "ollama"],
+        "simple": ["sensenova", "opencode", "longcat", "ollama"],
     }
 
     def route_provider(self, task: str) -> str:
         """根据任务类型选择合适的Provider（带故障转移）"""
-        candidates = self.TASK_ROUTING.get(task, ["longcat", "opencode", "ollama"])
+        candidates = self.TASK_ROUTING.get(task, ["sensenova", "longcat", "opencode", "ollama"])
         for provider in candidates:
             if provider in self._clients:
                 return provider

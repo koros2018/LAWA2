@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+*.egg
+.venv/
+.env
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Database
+*.db
+*.sqlite
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Legacy
+legacy/
+
+# E2E
+frontend/e2e-report/
+frontend/test-results/
+
+# Test images
+frontend/public/lawa-bridge-final-*.png
+frontend/public/preview.html
