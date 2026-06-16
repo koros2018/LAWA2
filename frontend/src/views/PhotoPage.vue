@@ -7,6 +7,7 @@ import {
   getPhotoHistory,
   chatAboutPhoto,
   getPhotoChats,
+  getPhotoImageUrl,
   type PhotoData,
   type PhotoChat,
   type WordItem,
@@ -152,7 +153,10 @@ onMounted(() => { loadHistory() })
     <div class="preview-area">
       <div v-if="currentPhoto" class="photo-card">
         <div class="photo-image-wrapper">
-          <div class="photo-placeholder">
+          <img v-if="currentPhoto.image_path" :src="getPhotoImageUrl(currentPhoto.id)" class="photo-img"
+            :alt="currentPhoto.ai_description || currentPhoto.original_filename"
+            @error="$event.target.style.display='none'" />
+          <div class="photo-placeholder" v-if="!currentPhoto.image_path">
             <span class="placeholder-icon">📸</span>
             <span class="placeholder-text">{{ currentPhoto.original_filename }}</span>
             <span class="placeholder-size">{{ formatSize(currentPhoto.file_size) }}</span>
@@ -279,7 +283,8 @@ onMounted(() => { loadHistory() })
 }
 .upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .photo-card { background: rgba(255,255,255,0.04); border-radius: 1rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); }
-.photo-image-wrapper { width: 100%; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); }
+.photo-image-wrapper { width: 100%; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden; border-radius: 0.75rem 0.75rem 0 0; }
+.photo-img { width: 100%; height: 100%; object-fit: contain; }
 .photo-placeholder { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: rgba(255,255,255,0.4); }
 .placeholder-icon { font-size: 3rem; }
 .placeholder-text { font-size: 0.9rem; }

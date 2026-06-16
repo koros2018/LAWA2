@@ -56,6 +56,10 @@ export async function uploadPhoto(
   return json.data
 }
 
+export async function getPhotoImageUrl(photoId: string): string {
+  return `/api/v2/photo/${photoId}/image`
+}
+
 export async function getPhotoDetail(
   photoId: string,
   userId: string

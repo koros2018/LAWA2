@@ -9,6 +9,8 @@ LAWA2 — 拍照理解 Agent API
   GET    /api/v2/photo/history    — 历史图片列表
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
+import os
 from pydantic import BaseModel
 from typing import Optional
 from loguru import logger
@@ -110,6 +112,24 @@ async def get_photo_history(
         offset=offset,
     )
     return {"status": "ok", "data": photos}
+
+
+@router.get("/{photo_id}/image")
+async def get_photo_image(
+    photo_id: str,
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """获取图片文件"""
+    result = await photo_engine.get_photo_detail(photo_id=photo_id, user_id=user_id, db=db)
+    if not result:
+        raise HTTPException(status_code=404, detail="图片不存在")
+    
+    image_path = result.get("image_path", "")
+    if not image_path or not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="图片文件不存在")
+    
+    return FileResponse(image_path)
 
 
 @router.get("/{photo_id}")
