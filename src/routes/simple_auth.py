@@ -199,3 +199,18 @@ async def get_current_user_info(
             "email": user.email,
         },
     }
+
+
+@router.post("/refresh")
+async def refresh_token(
+    user_id: str = Query(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """刷新 JWT Token（延长有效期）"""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    token = create_token(user.id, user.username)
+    return {"status": "ok", "data": {"token": token}}

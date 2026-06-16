@@ -60,6 +60,10 @@ app.include_router(admin_router)
 from src.routes.github_auth import router as github_auth_router
 app.include_router(github_auth_router)
 
+# JWT 认证中间件（在所有路由之后注册，在 CORS 之后）
+from src.middleware.auth_middleware import AuthMiddleware
+app.add_middleware(AuthMiddleware)
+
 
 # ── 健康检查 ──
 @app.get("/health")

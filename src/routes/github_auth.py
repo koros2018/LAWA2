@@ -43,10 +43,8 @@ router = APIRouter(prefix="/api/v2/auth", tags=["github-auth"])
 @router.get("/github/login")
 async def github_login_redirect(state: str = "lawa2_login"):
     """
-    生成 GitHub OAuth 登录 URL
-
-    前端直接 location.href = 此 URL，用户跳转到 GitHub 授权页。
-    授权后重定向到 GITHUB_REDIRECT_URI。
+    GitHub OAuth 登录（直接 302 重定向到 GitHub 授权页）
+    前端直接 location.href = 此端点即可。
     """
     if not GITHUB_CLIENT_ID:
         raise HTTPException(
@@ -61,7 +59,7 @@ async def github_login_redirect(state: str = "lawa2_login"):
         "state": state,
     }
     url = f"{GITHUB_AUTHORIZE_URL}?{urlencode(params)}"
-    return {"status": "ok", "data": {"login_url": url}}
+    return RedirectResponse(url=url)
 
 
 @router.get("/github/callback")
