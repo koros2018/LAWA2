@@ -4,7 +4,7 @@ LAWA2 — 简化登录 & 用户画像 API
 """
 import uuid
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional
 from loguru import logger
@@ -171,4 +171,31 @@ async def save_profile(
             "is_new_user": False,
                 "token": create_token(user.id, user.username),
         }
+    }
+
+
+@router.get("/me")
+async def get_current_user_info(
+    user_id: str = Query(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """获取当前用户信息（用于 OAuth 回调后前端加载用户资料）"""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    return {
+        "status": "ok",
+        "data": {
+            "user_id": user.id,
+            "username": user.username,
+            "display_name": user.display_name,
+            "native_lang": user.native_lang,
+            "learn_lang": user.learn_lang,
+            "interests": user.interests or [],
+            "current_level": user.current_level,
+            "avatar_url": user.avatar_url,
+            "email": user.email,
+        },
     }

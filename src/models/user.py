@@ -22,6 +22,10 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(200), nullable=True)
     wechat_openid: Mapped[str] = mapped_column(String(100), nullable=True, unique=True)
     
+    # GitHub OAuth
+    github_id: Mapped[str] = mapped_column(String(50), nullable=True, unique=True, index=True)
+    github_login: Mapped[str] = mapped_column(String(100), nullable=True)
+    
     # 语言
     native_lang: Mapped[str] = mapped_column(String(5), default="zh")
     learn_lang: Mapped[str] = mapped_column(String(5), default="en")

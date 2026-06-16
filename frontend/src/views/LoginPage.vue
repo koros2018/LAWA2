@@ -9,7 +9,10 @@ const username = ref('')
 const lang = ref<'zh' | 'en'>('zh')
 const loading = ref(false)
 const error = ref('')
-const showQr = ref(false)
+
+function githubLogin() {
+  window.location.href = '/api/v2/auth/github/login'
+}
 
 // 预设趣味用户名
 const funnyNames = [
@@ -69,24 +72,21 @@ async function handleLogin() {
       <p class="app-desc">语言是一扇门。<br/>跨过去，世界就在另一边。</p>
       <p class="app-desc-en">Language is a door.<br/>Step through, and the world is on the other side.</p>
 
-      <!-- 微信扫码区域（彩蛋式） -->
-      <div class="qr-section" :class="{ 'qr-expanded': showQr }">
-        <button class="qr-toggle" @click="showQr = !showQr">
-          <span class="qr-icon">📱</span>
-          <span>微信扫码登录 · WeChat Login</span>
-          <span class="qr-arrow">{{ showQr ? '▼' : '▶' }}</span>
+      <!-- OAuth 登录区域 -->
+      <div class="oauth-section">
+        <div class="oauth-divider">
+          <span class="divider-line"></span>
+          <span class="divider-text">或 · Or</span>
+          <span class="divider-line"></span>
+        </div>
+        <button class="btn-oauth github-btn" @click="githubLogin">
+          <span class="oauth-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+          </span>
+          <span>GitHub 登录 · Sign in with GitHub</span>
         </button>
-        <Transition name="slide">
-          <div v-if="showQr" class="qr-panel">
-            <div class="qr-placeholder">
-              <div class="qr-code">
-                <span class="qr-text">🌿</span>
-              </div>
-              <p class="qr-hint">扫码关注公众号 → 自动登录</p>
-              <p class="qr-note">扫码关注 → 自动登录 · Scan to auto-login</p>
-            </div>
-          </div>
-        </Transition>
       </div>
 
       <!-- 简易登录 -->
@@ -308,76 +308,62 @@ async function handleLogin() {
 }
 
 /* ── 微信扫码 ── */
-.qr-section {
-  margin-bottom: var(--space-lg, 1.5rem);
+/* ── OAuth 区域 ── */
+.oauth-section {
+  width: 100%;
+  margin-bottom: 1.5rem;
 }
 
-.qr-toggle {
-  display: inline-flex;
+.oauth-divider {
+  display: flex;
   align-items: center;
-  gap: var(--space-sm, 0.5rem);
-  background: transparent;
-  border: 1px solid var(--border, rgba(255,255,255,0.06));
-  border-radius: 4px;
-  padding: var(--space-sm, 0.5rem) var(--space-lg, 1.5rem);
-  color: var(--text-secondary, #86868b);
-  font-size: var(--fs-caption, 0.875rem);
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+.divider-text {
+  color: #555;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.btn-oauth {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0.75rem;
+  color: #ccc;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
   font-family: inherit;
 }
 
-.qr-toggle:hover {
-  border-color: var(--accent, #a78bfa);
-  color: var(--text-primary, #f5f5f7);
+.btn-oauth:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
+  color: #eee;
 }
 
-.qr-icon {
-  font-size: 1.1rem;
+.github-btn:hover {
+  border-color: rgba(110, 84, 148, 0.4);
 }
 
-.qr-arrow {
-  font-size: 0.75rem;
-  transition: transform 0.2s;
-}
-
-.qr-panel {
-  margin-top: var(--space-md, 1rem);
-}
-
-.qr-placeholder {
-  display: inline-block;
-  padding: var(--space-lg, 1.5rem);
-  background: var(--bg-card, #16161f);
-  border: 1px solid var(--border, rgba(255,255,255,0.06));
-  border-radius: 8px;
-}
-
-.qr-code {
-  width: 120px;
-  height: 120px;
-  background: white;
-  border-radius: 4px;
-  display: flex;
+.oauth-icon {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto var(--space-md, 1rem);
-}
-
-.qr-text {
-  font-size: 2rem;
-  opacity: 0.3;
-}
-
-.qr-hint {
-  font-size: var(--fs-small, 0.75rem);
-  color: var(--text-secondary, #86868b);
-}
-
-.qr-note {
-  font-size: var(--fs-small, 0.75rem);
-  color: var(--text-tertiary, #6e6e73);
-  margin-top: var(--space-xs, 0.25rem);
+  opacity: 0.7;
 }
 
 /* ── 表单 ── */

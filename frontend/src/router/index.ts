@@ -64,6 +64,14 @@ const routes = [
     meta: { title: '拍照 · Photo', icon: '📸', requiresAuth: true, agent: 'photo' },
   },
 
+  // ── OAuth 回调（无底部导航，不需要认证） ──
+  {
+    path: '/oauth-callback',
+    name: 'oauth-callback',
+    component: () => import('@/views/OAuthCallbackPage.vue'),
+    meta: { title: 'LAWA · 登录中 · Signing in' },
+  },
+
   // ── 超级管理员 Agent ──
   {
     path: '/admin',
