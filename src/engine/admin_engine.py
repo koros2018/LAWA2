@@ -191,10 +191,22 @@ class AdminEngine:
             "streak_days": user.streak_days,
             "bridge_level": user.bridge_level,
             "is_active": user.is_active,
+            "is_admin": user.is_admin,
             "interests": user.interests or [],
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "updated_at": user.updated_at.isoformat() if user.updated_at else None,
         }
+
+    async def set_admin_status(self, user_id: str, is_admin: bool, db: AsyncSession) -> Optional[dict]:
+        """设置用户管理员权限 · Set user admin status"""
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        if not user:
+            return None
+        user.is_admin = is_admin
+        await db.commit()
+        await db.refresh(user)
+        return self._user_to_dict(user)
 
 
 # 全局单例

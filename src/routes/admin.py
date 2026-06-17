@@ -6,6 +6,8 @@ LAWA2 — 超级管理员 Agent API
   GET    /api/v2/admin/users/:id   — 用户详情
   POST   /api/v2/admin/users/:id/toggle — 切换用户激活状态
   GET    /api/v2/admin/stats       — 系统统计数据
+
+权限: 仅管理员可访问 · Only admin users can access
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,18 +16,38 @@ from loguru import logger
 
 from src.database.main import get_db
 from src.engine.admin_engine import admin_engine
+from src.models.user import User
 
 router = APIRouter(prefix="/api/v2/admin", tags=["admin"])
 
 
+async def require_admin(user_id: str = Query(..., description="User ID"), db: AsyncSession = Depends(get_db)) -> User:
+    """权限检查：仅管理员可访问 · Admin-only access check"""
+    if not user_id:
+        raise HTTPException(status_code=400, detail="缺少 user_id")
+    
+    from sqlalchemy import select
+    stmt = select(User).where(User.id == user_id)
+    user = (await db.execute(stmt)).scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="权限不足 · Admin access required")
+    
+    return user
+
+
 @router.get("/users")
 async def list_users(
+    admin_user: User = Depends(require_admin),
     search: Optional[str] = Query(None, description="搜索用户名/显示名"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
-    """用户列表"""
+    """用户列表 · User list (admin only)"""
     users = await admin_engine.get_users(
         db=db, search=search, limit=limit, offset=offset
     )
@@ -43,10 +65,11 @@ async def list_users(
 
 @router.get("/users/{user_id}")
 async def get_user_detail(
-    user_id: str,
+    admin_user: User = Depends(require_admin),
+    user_id: str = Query(..., description="User ID"),
     db: AsyncSession = Depends(get_db),
 ):
-    """用户详情"""
+    """用户详情 · User detail (admin only)"""
     user = await admin_engine.get_user_detail(user_id=user_id, db=db)
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
@@ -55,10 +78,11 @@ async def get_user_detail(
 
 @router.post("/users/{user_id}/toggle")
 async def toggle_user(
-    user_id: str,
+    admin_user: User = Depends(require_admin),
+    user_id: str = Query(..., description="User ID"),
     db: AsyncSession = Depends(get_db),
 ):
-    """切换用户激活状态"""
+    """切换用户激活状态 · Toggle user active status (admin only)"""
     user = await admin_engine.toggle_user_active(user_id=user_id, db=db)
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
@@ -67,8 +91,24 @@ async def toggle_user(
 
 @router.get("/stats")
 async def system_stats(
+    admin_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """系统统计数据"""
+    """系统统计数据 · System statistics (admin only)"""
     stats = await admin_engine.get_system_stats(db=db)
     return {"status": "ok", "data": stats}
+
+
+@router.post("/users/{user_id}/admin")
+async def set_admin(
+    admin_user: User = Depends(require_admin),
+    user_id: str = Query(..., description="User ID"),
+    is_admin: bool = Query(..., description="Admin status"),
+    db: AsyncSession = Depends(get_db),
+):
+    """设置用户管理员权限 · Set user admin status (super admin only)"""
+    # 只能由管理员设置管理员权限
+    result = await admin_engine.set_admin_status(user_id, is_admin, db)
+    if not result:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    return {"status": "ok", "data": result}

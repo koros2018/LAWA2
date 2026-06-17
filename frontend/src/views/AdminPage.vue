@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { session } from '@/store/session'
 import {
   getAdminStats,
   getAdminUsers,
   toggleAdminUser,
+  setAdminStatus,
   type SystemStats,
   type UserAdmin,
   type UsersListResponse,
@@ -19,6 +21,7 @@ const searchQuery = ref('')
 const userOffset = ref(0)
 const USERS_PAGE_SIZE = 20
 const togglingId = ref<string | null>(null)
+const currentUser = ref<UserAdmin | null>(null)
 
 async function loadStats() {
   statsLoading.value = true
@@ -59,6 +62,21 @@ async function toggleUser(userId: string) {
   }
 }
 
+async function toggleAdmin(userId: string) {
+  togglingId.value = userId
+  try {
+    const user = users.value.find(u => u.id === userId)
+    if (!user) return
+    const updated = await setAdminStatus(userId, !user.is_admin)
+    const idx = users.value.findIndex(u => u.id === userId)
+    if (idx >= 0) users.value[idx] = updated
+  } catch (e: any) {
+    console.error('Toggle admin failed:', e)
+  } finally {
+    togglingId.value = null
+  }
+}
+
 function searchUsers() { loadUsers(false) }
 
 function formatDate(iso: string): string {
@@ -75,7 +93,30 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1048576).toFixed(1)} MB`
 }
 
-onMounted(() => { loadStats(); loadUsers() })
+onMounted(() => {
+  // 检查当前用户权限
+  if (session.user) {
+    currentUser.value = {
+      id: session.user.userId,
+      username: session.user.username,
+      display_name: session.user.displayName,
+      native_lang: session.user.nativeLang,
+      learn_lang: session.user.learnLang,
+      current_level: session.user.currentLevel,
+      habit_level: 1,
+      growth_xp: 0,
+      streak_days: 0,
+      bridge_level: 0,
+      is_active: true,
+      is_admin: session.user.isAdmin ?? false,
+      interests: session.user.interests,
+      created_at: '',
+      updated_at: '',
+    }
+  }
+  loadStats()
+  loadUsers()
+})
 </script>
 
 <template>
@@ -154,12 +195,16 @@ onMounted(() => { loadStats(); loadUsers() })
             <div class="user-detail"><span class="detail-label">等级 · Level</span><span class="detail-value">{{ user.current_level || '—' }} (习惯 · Habit {{ user.habit_level }})</span></div>
             <div class="user-detail"><span class="detail-label">XP / 连续 · Streak</span><span class="detail-value">{{ user.growth_xp }} / {{ user.streak_days }}天 · {{ user.streak_days }}d</span></div>
             <div class="user-detail"><span class="detail-label">桥梁 · Bridge Level</span><span class="detail-value">{{ user.bridge_level }}</span></div>
+            <div class="user-detail"><span class="detail-label">权限 · Permission</span><span class="detail-value"><span class="admin-badge" :class="{ admin: user.is_admin }">{{ user.is_admin ? '👑 Admin' : 'User' }}</span></span></div>
             <div class="user-detail"><span class="detail-label">兴趣 · Interests</span><span class="detail-value text-ellipsis">{{ user.interests?.length ? user.interests.join(', ') : '—' }}</span></div>
             <div class="user-detail"><span class="detail-label">注册时间 · Registered</span><span class="detail-value">{{ formatDate(user.created_at) }}</span></div>
           </div>
           <div class="user-actions">
             <button class="toggle-btn" :class="{ danger: user.is_active }" :disabled="togglingId === user.id" @click="toggleUser(user.id)">
               {{ togglingId === user.id ? '...' : user.is_active ? '🔴 禁用 Disable' : '🟢 启用 Enable' }}
+            </button>
+            <button v-if="currentUser?.is_admin" class="toggle-btn" :class="{ admin: !user.is_admin }" :disabled="togglingId === user.id" @click="toggleAdmin(user.id)">
+              {{ togglingId === user.id ? '...' : user.is_admin ? '👑 取消管理员' : '👑 设为管理员' }}
             </button>
           </div>
         </div>
@@ -204,6 +249,9 @@ onMounted(() => { loadStats(); loadUsers() })
 .user-status { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 0.4rem; font-weight: 600; }
 .user-status.active { background: rgba(76, 175, 80, 0.15); color: #4CAF50; }
 .user-status.inactive { background: rgba(244, 67, 54, 0.15); color: #f44336; }
+.admin-badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 0.3rem; font-size: 0.7rem; font-weight: 600; }
+.admin-badge.admin { background: rgba(167, 139, 250, 0.2); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.3); }
+.admin-badge:not(.admin) { background: rgba(136, 136, 136, 0.15); color: #888; }
 .user-info { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; margin-bottom: 0.5rem; }
 .user-detail { display: flex; flex-direction: column; }
 .detail-label { font-size: 0.6rem; color: #888; text-transform: uppercase; }
@@ -213,6 +261,8 @@ onMounted(() => { loadStats(); loadUsers() })
 .toggle-btn { background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; padding: 0.3rem 0.6rem; font-size: 0.75rem; cursor: pointer; color: #ccc; transition: all 0.2s; }
 .toggle-btn.danger { border-color: rgba(244, 67, 54, 0.3); color: #f44336; }
 .toggle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.toggle-btn.admin { border-color: rgba(167, 139, 250, 0.4); color: #a78bfa; }
+.toggle-btn.admin:hover { background: rgba(167, 139, 250, 0.1); }
 .load-more { text-align: center; padding: 1rem; }
 .btn-ghost { background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.6rem; padding: 0.5rem 1rem; color: #a78bfa; font-size: 0.8rem; cursor: pointer; }
 .btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }

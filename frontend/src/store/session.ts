@@ -15,6 +15,7 @@ export interface UserSession {
   hasProfile: boolean
   isNewUser: boolean
   token: string  // JWT Bearer Token
+  isAdmin: boolean
 }
 
 const STORAGE_KEY = 'lawa2_session'
@@ -61,6 +62,7 @@ export function setSession(data: {
   has_profile: boolean
   is_new_user: boolean
   token: string  // JWT token
+  is_admin?: boolean
 }) {
   const s: UserSession = {
     userId: data.user_id,
@@ -73,6 +75,7 @@ export function setSession(data: {
     hasProfile: data.has_profile,
     isNewUser: data.is_new_user,
     token: data.token,
+    isAdmin: data.is_admin ?? false,
   }
   session.user = s
   saveSession(s)
