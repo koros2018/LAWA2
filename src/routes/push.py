@@ -1,7 +1,7 @@
 """
 LAWA2 — 推送通知 API
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, Path
 from loguru import logger
 
 from src.engine.push_engine import push_engine
@@ -93,7 +93,7 @@ async def get_notifications(
 
 
 @router.put("/notifications/{notification_id}/read")
-async def mark_read(user_id: str = Depends(withUser), notification_id: str = Query(...)):
+async def mark_read(user_id: str = Depends(withUser), notification_id: str = Path(..., description="Notification ID")):
     """标记通知已读 · Mark notification as read"""
     try:
         result = await push_engine.mark_read(notification_id)

@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 
 from src.models.photo import PhotoUnderstanding, PhotoChat
-from src.models.bridge import BridgeInteraction
+from src.models.habit import BridgeInteraction
 from src.models.user import User
 from src.database.main import AsyncSessionLocal
 from src.services.llm_service import llm_service
