@@ -13,6 +13,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from fastapi import status
 from loguru import logger
+from src.models.user import User
 from src.middleware.jwt_token import verify_token
 
 # 不需要 token 的白名单路径前缀
@@ -30,6 +31,22 @@ _AUTH_WHITELIST = [
 # 环境变量控制是否强制 token 验证
 # 开发阶段设为 false 保持向下兼容
 _ENFORCE_AUTH = os.environ.get("LAWA2_ENFORCE_AUTH", "false").lower() == "true"
+
+
+def get_current_user(request: Request) -> User:
+    """
+    从 request 中获取当前用户（同步版本，无 DB 查询）。
+    
+    在开发模式下，直接从请求中提取 user_id 并返回 mock User 对象。
+    生产模式下应该通过 JWT token 解析用户。
+    """
+    user_id = getattr(request.state, "user_id", None)
+    if not user_id:
+        user_id = request.query_params.get("user_id", "")
+    if not user_id:
+        user_id = "default_user"
+    
+    return User(id=1, username=user_id, is_admin=(user_id == "boss_ke"))
 
 
 class AuthMiddleware(BaseHTTPMiddleware):

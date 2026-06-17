@@ -84,6 +84,7 @@ def get_log_stats(
 @router.delete("", response_model=ClearLogsResponse)
 def clear_logs(
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """清空日志文件（仅管理员）"""
     if not current_user.is_admin:

@@ -1,10 +1,10 @@
 """
-LAWA2 — 错误监控 API
+LAWA2 — 错误监控路由
 
 查看错误统计、Top 错误、清空统计（仅管理员）。
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from src.database import get_db
 from src.models.user import User
@@ -44,6 +44,7 @@ def get_errors_stats(
 @router.delete("/stats")
 def clear_errors_stats(
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """清空错误统计（仅管理员）"""
     if not current_user.is_admin:

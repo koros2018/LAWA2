@@ -9,11 +9,13 @@ from sqlalchemy.orm import Session
 from src.database import get_db
 from src.models.user import User
 from src.engine.seed_content_engine import SeedContentEngine
-from src.middleware.auth_middleware import get_current_user
 from pydantic import BaseModel, Field
 from typing import Optional
 
 router = APIRouter(prefix="/api/v2/seed", tags=["seed-content"])
+
+
+from src.middleware.auth_middleware import get_current_user
 
 
 # ── Request/Response Models ──

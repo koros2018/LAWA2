@@ -304,8 +304,10 @@ PhotoChat
 | 6.4 | 错误监控 | Sentry 集成 + 异常告警 | P2 |
 | 6.5 | E2E 测试补全 | Playwright 场景覆盖 + 回归测试 | P2 |
 | 6.6 | CI/CD 流水线 | GitHub Actions 自动构建 + 部署 | P3 |
-| 6.7 | 数据备份/恢复 | 自动备份脚本 + 恢复流程 | ✅ 已完成 |
-| 6.8 | Docker 部署 | Dockerfile + docker-compose.yml | ✅ 已完成 |
+| 6.7 | 统一认证依赖 | P1 | 🔲 本次测试发现问题 |
+| 6.8 | API 参数标准化 | P2 | 🔲 Admin 路由统一 Query |
+| 6.9 | 测试用户管理 | P2 | 🔲 自动创建/清理测试用户 |
+| 6.10 | 文件上传测试 | P3 | 🔲 multipart/form-data 测试 |
 
 **API 变更：**
 ```
