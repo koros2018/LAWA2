@@ -71,6 +71,12 @@ const routes = [
     component: () => import('@/views/AdminPage.vue'),
     meta: { title: '管理 · Admin', icon: '⚙️', requiresAuth: true, agent: 'admin' },
   },
+  {
+    path: '/seed-content',
+    name: 'seed-content',
+    component: () => import('@/views/SeedContentPage.vue'),
+    meta: { title: '内容管理 · Content', icon: '📝', requiresAuth: true, agent: 'admin' },
+  },
 ]
 
 const router = createRouter({

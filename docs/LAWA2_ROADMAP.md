@@ -1,7 +1,10 @@
-# 🌿 LAWA2 — 产品路线图 v5
+# 🌿 LAWA2 — 产品路线图 v6
 
 > 养成式双语日常空间 × 多 Agent 架构
-> 2026-06-15 | 基于 Ke & 达子双人讨论
+> 2026-06-17 | 基于 Ke & 达子双人讨论
+> 
+> **更新日志：**
+> - v5 → v6: 添加 Phase 6（质量增强 + 生产就绪），标记 Phase 5 为已取消
 
 ---
 
@@ -285,6 +288,34 @@ PhotoChat
 | 5.4 | HTTPS 配置 | 开发环境 mkcert + 生产环境证书 |
 | 5.5 | 迁移已有用户 | localStorage → 后端认证平滑迁移 |
 
+> ⚠️ **已取消** — 2026-06-17 决定移除所有 OAuth（GitHub + WeChat），仅保留免密码登录
+
+---
+
+### Phase 6：质量增强 + 生产就绪（新增）
+
+**目标：** 完善内容管理、数据可视化、部署运维
+
+| # | 任务 | 产出 | 优先级 |
+|---|------|------|--------|
+| 6.1 | 内容管理页面（前端） | 种子语料 CRUD UI + 双语编辑 | P1 |
+| 6.2 | 数据看板图表 | ECharts 集成 + DAU/留存/行为统计 | P1 |
+| 6.3 | 日志查看页面 | 系统日志 UI + 错误聚合 | P2 |
+| 6.4 | 错误监控 | Sentry 集成 + 异常告警 | P2 |
+| 6.5 | E2E 测试补全 | Playwright 场景覆盖 + 回归测试 | P2 |
+| 6.6 | CI/CD 流水线 | GitHub Actions 自动构建 + 部署 | P3 |
+| 6.7 | 数据备份/恢复 | 自动备份脚本 + 恢复流程 | ✅ 已完成 |
+| 6.8 | Docker 部署 | Dockerfile + docker-compose.yml | ✅ 已完成 |
+
+**API 变更：**
+```
+  GET    /api/v2/seed/contents — 种子语料列表
+  POST   /api/v2/seed/contents — 创建种子语料
+  PUT    /api/v2/seed/contents/:id — 更新种子语料
+  DELETE /api/v2/seed/contents/:id — 删除种子语料
+  GET    /api/v2/seed/contents/system/:type — 系统内置语料
+```
+
 ---
 
 ## 4. 里程碑
@@ -296,16 +327,45 @@ M2  [✅] 2026-06-14 — 社交场景上线
 M3  [✅] 2026-06-14 — 双向桥梁 Lv.1
 M4  [✅] 2026-06-15 — 花园+洞察深化 + 桥梁 Lv.2-3
 
-P1  [🔲] Phase 1 — 全面双语化 + Agent 架构
+P1  [✅] Phase 1 — 全面双语化 + Agent 架构
     目标：所有 UI 中英双语 + 三 Agent 入口
-P2  [🔲] Phase 2 — 事项提醒 Agent
+P2  [✅] Phase 2 — 事项提醒 Agent
     目标：日历/纪念日/节假日中英文化融入
-P3  [🔲] Phase 3 — 拍照理解 Agent
+P3  [✅] Phase 3 — 拍照理解 Agent
     目标：拍照上传 → AI 理解 → 中英对话
-P4  [🔲] Phase 4 — 超级管理员 Agent
+P4  [✅] Phase 4 — 超级管理员 Agent
     目标：后台管理 + 数据看板
-P5  [🔲] Phase 5 — 微信登录 + 数据安全
+P5  [❌] Phase 5 — 微信登录 + 数据安全
     目标：真实认证 + 用户数据隔离
+    状态：已取消（2026-06-17），仅保留免密码登录
+
+P6  [🔲] Phase 6 — 质量增强 + 生产就绪
+    目标：内容管理 + 数据可视化 + 部署运维
+    状态：进行中（2026-06-17）
+```
+
+---
+
+## 5. 版本历史
+
+```
+v2.0.0  2026-06-12  Core Loop + Bridge Lv.1-3
+v2.1.0  2026-06-13  Photo Understanding Agent
+v2.2.0  2026-06-16  Admin Agent + GitHub OAuth + JWT
+v2.3.0  2026-06-17  Bridge Lv.4-5 (Group Chat + Offline Scene)
+v2.3.1  2026-06-17  Photo Thumbnail
+v2.4.0  2026-06-17  Phase 1 Full Bilingualization
+v2.5.0  2026-06-17  Push Notifications + Word Card Modal + Share to Bridge
+v2.6.0  2026-06-17  3-Agent Entry Architecture + Admin Enhancement
+v2.7.0  2026-06-17  3-Agent Frontend Integration
+v2.7.1  2026-06-17  Admin Permission Check (is_admin field)
+v2.7.2  2026-06-17  Register Admin User + Remove GitHub OAuth
+v2.7.3  2026-06-17  Admin Permission Enforcement + OAuth UI Cleanup
+v2.7.4  2026-06-17  Remove all OAuth (GitHub + WeChat)
+v2.7.5  2026-06-17  Deployment Scripts + Data Backup/Restore
+v2.8.0  TBD       Phase 6: Content Management (Frontend)
+v2.9.0  TBD       Phase 6: Data Dashboard Charts
+v3.0.0  TBD       Phase 6: Production Ready
 ```
 
 ---

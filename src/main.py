@@ -16,6 +16,7 @@ from src.routes.bridge import router as bridge_router
 from src.routes.reminder import router as reminder_router
 from src.routes.photo import router as photo_router
 from src.routes.admin import router as admin_router
+from src.routes.seed_content import router as seed_content_router
 import src.models  # 确保所有模型在 init_db 前注册
 
 
@@ -57,6 +58,7 @@ app.include_router(bridge_router)
 app.include_router(reminder_router)
 app.include_router(photo_router)
 app.include_router(admin_router)
+app.include_router(seed_content_router)
 
 # 已移除：github_auth router（经常失效且无用）
 # from src.routes.github_auth import router as github_auth_router
