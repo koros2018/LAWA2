@@ -97,7 +97,41 @@ onMounted(() => { loadStats(); loadUsers() })
         <div class="stat-card"><span class="stat-icon">📝</span><div class="stat-info"><span class="stat-value">{{ stats.total_habit_events }}</span><span class="stat-label">总事件 · Total Events</span></div></div>
         <div class="stat-card"><span class="stat-icon">📅</span><div class="stat-info"><span class="stat-value">{{ stats.today_habit_events }}</span><span class="stat-label">今日事件 · Today's Events</span></div></div>
         <div class="stat-card"><span class="stat-icon">⚙️</span><div class="stat-info"><span class="stat-value">{{ stats.active_configs }}</span><span class="stat-label">活跃配置 · Active Configs</span></div></div>
+        <div class="stat-card"><span class="stat-icon">📈</span><div class="stat-info"><span class="stat-value">{{ stats.avg_events_per_user }}</span><span class="stat-label">人均事件 · Avg Events</span></div></div>
+        <div class="stat-card"><span class="stat-icon">🆕</span><div class="stat-info"><span class="stat-value">{{ stats.new_users_7d }}</span><span class="stat-label">7日新增 · New Users 7d</span></div></div>
+        <div class="stat-card"><span class="stat-icon">🌉</span><div class="stat-info"><span class="stat-value">{{ stats.bridge_interactions }}</span><span class="stat-label">桥梁互动 · Bridge</span></div></div>
+        <div class="stat-card"><span class="stat-icon">📸</span><div class="stat-info"><span class="stat-value">{{ stats.photos }}</span><span class="stat-label">照片 · Photos</span></div></div>
+        <div class="stat-card"><span class="stat-icon">🔔</span><div class="stat-info"><span class="stat-value">{{ stats.push_notifications }}</span><span class="stat-label">推送 · Push</span></div></div>
         <div class="stat-card"><span class="stat-icon">💾</span><div class="stat-info"><span class="stat-value">{{ formatSize(stats.db_size_bytes) }}</span><span class="stat-label">数据库 · Database</span></div></div>
+      </div>
+      
+      <!-- 7日趋势 -->
+      <div v-if="stats && stats.daily_trends" class="trend-section">
+        <h3 class="section-title">📈 7日趋势 · 7-Day Trends</h3>
+        <div class="trend-bars">
+          <div v-for="day in stats.daily_trends" :key="day.date" class="trend-bar">
+            <div class="trend-date">{{ day.date.slice(5) }}</div>
+            <div class="trend-value">{{ day.active_users }}</div>
+            <div class="trend-track">
+              <div class="trend-fill" :style="{ width: Math.max(5, (day.active_users / (stats.active_users_today || 1) * 100)) + '%' }"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Top 10 用户 -->
+      <div v-if="stats && stats.top_users && stats.top_users.length" class="top-users-section">
+        <h3 class="section-title">🏆 Top 10 用户 · Top Users by XP</h3>
+        <div class="top-users-list">
+          <div v-for="(user, idx) in stats.top_users" :key="user.id" class="top-user-card">
+            <span class="top-rank">{{ idx + 1 }}</span>
+            <span class="top-avatar">👤</span>
+            <div class="top-user-info">
+              <div class="top-user-name">{{ user.display_name || user.username }}</div>
+              <div class="top-user-meta">XP {{ user.growth_xp }} · {{ user.streak_days }}d · {{ user.bridge_level }}</div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -182,4 +216,24 @@ onMounted(() => { loadStats(); loadUsers() })
 .load-more { text-align: center; padding: 1rem; }
 .btn-ghost { background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.6rem; padding: 0.5rem 1rem; color: #a78bfa; font-size: 0.8rem; cursor: pointer; }
 .btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── 7日趋势 ── */
+.trend-section { margin-top: 1.5rem; }
+.section-title { font-size: 1rem; color: #eee; margin-bottom: 0.8rem; }
+.trend-bars { display: flex; flex-direction: column; gap: 0.4rem; }
+.trend-bar { display: flex; align-items: center; gap: 0.5rem; }
+.trend-date { font-size: 0.7rem; color: #888; width: 45px; text-align: right; }
+.trend-value { font-size: 0.75rem; color: #a78bfa; width: 25px; }
+.trend-track { flex: 1; height: 14px; background: rgba(255,255,255,0.05); border-radius: 7px; overflow: hidden; }
+.trend-fill { height: 100%; background: linear-gradient(90deg, #7c3aed, #a78bfa); border-radius: 7px; transition: width 0.5s ease; }
+
+/* ── Top 10 用户 ── */
+.top-users-section { margin-top: 1.5rem; }
+.top-users-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.top-user-card { display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem; padding: 0.5rem 0.8rem; }
+.top-rank { font-size: 0.85rem; font-weight: 700; color: #c084fc; width: 20px; }
+.top-avatar { font-size: 1.2rem; }
+.top-user-info { flex: 1; }
+.top-user-name { font-size: 0.85rem; font-weight: 600; color: #eee; }
+.top-user-meta { font-size: 0.7rem; color: #888; }
 </style>
