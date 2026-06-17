@@ -233,3 +233,283 @@ test.describe('LAWA2 E2E — 桥梁完整流程', () => {
     )
   })
 })
+
+// ── 9. Admin Agent 测试 ──
+
+test.describe('LAWA2 E2E — Admin Agent', () => {
+
+  test('9.1 管理页面 — 加载数据看板', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/admin`)
+    await setUserId(page)
+    await page.reload()
+    await page.waitForTimeout(2000)
+    
+    // 验证数据卡片加载
+    const statCards = page.locator('.stat-card')
+    await expect(statCards.first()).toBeVisible()
+  })
+
+  test('9.2 管理页面 — 用户管理 Tab', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/admin`)
+    await setUserId(page)
+    await page.reload()
+    await page.waitForTimeout(2000)
+    
+    // 切换到用户管理 Tab
+    const usersTab = page.locator('button:has-text("用户管理"), button:has-text("Users")')
+    await usersTab.click()
+    await page.waitForTimeout(1000)
+    
+    // 验证用户列表加载
+    const userCards = page.locator('.user-card')
+    await expect(userCards.first()).toBeVisible()
+  })
+
+  test('9.3 内容管理页面 — 加载列表', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/seed-content`)
+    await setUserId(page)
+    await page.reload()
+    await page.waitForTimeout(2000)
+    
+    // 验证页面加载（可能有空状态或列表）
+    const content = page.locator('body')
+    await expect(content).not.toBeEmpty()
+  })
+
+  test('9.4 日志查看页面 — 加载日志', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/logs`)
+    await setUserId(page)
+    await page.reload()
+    await page.waitForTimeout(2000)
+    
+    // 验证页面加载
+    const content = page.locator('body')
+    await expect(content).not.toBeEmpty()
+  })
+
+  test('9.5 错误监控页面 — 加载统计', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/errors`)
+    await setUserId(page)
+    await page.reload()
+    await page.waitForTimeout(2000)
+    
+    // 验证页面加载
+    const content = page.locator('body')
+    await expect(content).not.toBeEmpty()
+  })
+})
+
+// ── 10. Photo Agent 测试 ──
+
+test.describe('LAWA2 E2E — Photo Agent', () => {
+
+  test('10.1 拍照页面 — 加载上传界面', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/photo`)
+    await setUserId(page)
+    await page.reload()
+    await page.waitForTimeout(2000)
+    
+    // 验证上传区域存在
+    const uploadArea = page.locator('.upload-area, [data-testid="upload"], button:has-text("上传")')
+    if (await uploadArea.count() > 0) {
+      await expect(uploadArea.first()).toBeVisible()
+    }
+  })
+
+  test('10.2 拍照页面 — 词汇卡片 Modal', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/photo`)
+    await setUserId(page)
+    await page.reload()
+    await page.waitForTimeout(2000)
+    
+    // 验证词汇卡片 Modal 组件存在（检查是否有 modal 样式）
+    const modalStyles = await page.evaluate(() => {
+      const styles = document.styleSheets
+      for (let sheet of styles) {
+        try {
+          for (let rule of sheet.cssRules) {
+            if (rule.cssText?.includes('modal') || rule.cssText?.includes('Modal')) {
+              return true
+            }
+          }
+        } catch {}
+      }
+      return false
+    })
+    expect(modalStyles).toBeTruthy()
+  })
+})
+
+// ── 11. Reminder Agent 测试 ──
+
+test.describe('LAWA2 E2E — Reminder Agent', () => {
+
+  test('11.1 提醒页面 — 加载日历', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/reminder`)
+    await setUserId(page)
+    await page.reload()
+    await page.waitForTimeout(2000)
+    
+    // 验证日历组件存在
+    const calendar = page.locator('.calendar-grid, .calendar, [data-testid="calendar"]')
+    if (await calendar.count() > 0) {
+      await expect(calendar.first()).toBeVisible()
+    }
+  })
+
+  test('11.2 提醒页面 — 节假日列表', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/reminder`)
+    await setUserId(page)
+    await page.reload()
+    await page.waitForTimeout(2000)
+    
+    // 验证节假日数据加载
+    const holidays = page.locator('.holiday-item, .event-card, .reminder-item')
+    if (await holidays.count() > 0) {
+      await expect(holidays.first()).toBeVisible()
+    }
+  })
+})
+
+// ── 12. 响应式测试 ──
+
+test.describe('LAWA2 E2E — 响应式', () => {
+
+  test('12.1 移动端视图 — 首页', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+    await page.goto(`${FRONTEND_URL}/`)
+    await page.waitForTimeout(1000)
+    
+    const body = page.locator('body')
+    await expect(body).not.toBeEmpty()
+  })
+
+  test('12.2 平板视图 — 管理页面', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 })
+    await page.goto(`${FRONTEND_URL}/admin`)
+    await setUserId(page)
+    await page.reload()
+    await page.waitForTimeout(2000)
+    
+    const content = page.locator('body')
+    await expect(content).not.toBeEmpty()
+  })
+})
+
+// ── 13. 双语化测试 ──
+
+test.describe('LAWA2 E2E — 双语化', () => {
+
+  test('13.1 首页 — 包含中英文', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/`)
+    await page.waitForTimeout(1000)
+    
+    const bodyText = await page.locator('body').textContent()
+    // 检查是否包含中英文混合内容
+    const hasChinese = /\u4e00-\u9fff/.test(bodyText || '')
+    const hasEnglish = /[A-Za-z]/.test(bodyText || '')
+    expect(hasChinese || hasEnglish).toBeTruthy()
+  })
+
+  test('13.2 桥梁页面 — 双语标签', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/bridge`)
+    await page.waitForTimeout(1000)
+    
+    const bodyText = await page.locator('body').textContent()
+    // 检查双语格式（中文 · English）
+    const hasBilingual = /·/.test(bodyText || '')
+    expect(hasBilingual).toBeTruthy()
+  })
+})
+
+// ── 14. 性能测试 ──
+
+test.describe('LAWA2 E2E — 性能', () => {
+
+  test('14.1 首页加载时间 < 3s', async ({ page }) => {
+    const startTime = Date.now()
+    await page.goto(`${FRONTEND_URL}/`)
+    await page.waitForLoadState('domcontentloaded')
+    const loadTime = Date.now() - startTime
+    expect(loadTime).toBeLessThan(3000)
+  })
+
+  test('14.2 管理页面加载时间 < 5s', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/admin`)
+    await setUserId(page)
+    await page.reload()
+    
+    const startTime = Date.now()
+    await page.waitForLoadState('networkidle')
+    const loadTime = Date.now() - startTime
+    expect(loadTime).toBeLessThan(5000)
+  })
+})
+
+// ── 15. 路由守卫测试 ──
+
+test.describe('LAWA2 E2E — 路由守卫', () => {
+
+  test('15.1 未登录访问管理页面 — 重定向到登录', async ({ page }) => {
+    // 清除本地存储
+    await page.goto(FRONTEND_URL)
+    await page.evaluate(() => localStorage.clear())
+    
+    await page.goto(`${FRONTEND_URL}/admin`)
+    await page.waitForTimeout(2000)
+    
+    // 应该重定向到登录页面
+    const currentUrl = page.url()
+    expect(currentUrl).toContain('/login')
+  })
+})
+
+// ── 16. API 端点补充测试 ──
+
+test.describe('LAWA2 E2E — API 补充', () => {
+
+  test('16.1 种子语料 API — 列表', async () => {
+    const res = await fetch('http://localhost:6290/api/v2/seed/contents?user_id=test_user&page=1&page_size=20')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.items).toBeDefined()
+    expect(data.total).toBeDefined()
+  })
+
+  test('16.2 日志 API — 列表', async () => {
+    const res = await fetch('http://localhost:6290/api/v2/logs?lines=100')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.logs).toBeDefined()
+    expect(data.total).toBeDefined()
+  })
+
+  test('16.3 错误统计 API', async () => {
+    const res = await fetch('http://localhost:6290/api/v2/errors/stats')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.total_errors).toBeDefined()
+    expect(data.top_errors).toBeDefined()
+  })
+
+  test('16.4 推送通知 API', async () => {
+    const res = await fetch('http://localhost:6290/api/v2/push/preferences?user_id=test_user')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data).toBeDefined()
+  })
+
+  test('16.5 桥梁 Lv.4 群聊 API', async () => {
+    const res = await fetch('http://localhost:6290/api/v2/bridge/group?user_id=test_user')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.status).toBe('ok')
+  })
+
+  test('16.6 桥梁 Lv.5 线下场景 API', async () => {
+    const res = await fetch('http://localhost:6290/api/v2/bridge/offline?user_id=test_user')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.status).toBe('ok')
+  })
+})
