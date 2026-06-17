@@ -77,6 +77,12 @@ const routes = [
     component: () => import('@/views/SeedContentPage.vue'),
     meta: { title: '内容管理 · Content', icon: '📝', requiresAuth: true, agent: 'admin' },
   },
+  {
+    path: '/logs',
+    name: 'logs',
+    component: () => import('@/views/LogsPage.vue'),
+    meta: { title: '日志 · Logs', icon: '📋', requiresAuth: true, agent: 'admin' },
+  },
 ]
 
 const router = createRouter({
