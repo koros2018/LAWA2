@@ -22,8 +22,6 @@ _AUTH_WHITELIST = [
     "/api/v2/auth/login",
     "/api/v2/auth/profile",
     "/api/v2/auth/refresh",
-    "/api/v2/auth/github/login",
-    "/api/v2/auth/github/callback",
     "/api/v2/auth/me",
     "/api/v2/reminder/seed-holidays",
     "/api/v2/reminder/holidays",

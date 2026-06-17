@@ -1,6 +1,6 @@
 """
 LAWA2 — 简化登录 & 用户画像 API
-不搞 OAuth 仪式感，一个微信扫码或者选个名字就进了。
+不搞 OAuth 仪式感，选个名字就进了。
 """
 import uuid
 from datetime import datetime, timezone
@@ -24,7 +24,7 @@ def _utcnow():
 # ── 请求/响应模型 ──
 
 class LoginRequest(BaseModel):
-    """免密码登录 — 未来对接微信扫码"""
+    """免密码登录"""
     username: str = "default_user"
     native_lang: str = "zh"  # zh | en
 

@@ -57,8 +57,10 @@ app.include_router(bridge_router)
 app.include_router(reminder_router)
 app.include_router(photo_router)
 app.include_router(admin_router)
-from src.routes.github_auth import router as github_auth_router
-app.include_router(github_auth_router)
+
+# 已移除：github_auth router（经常失效且无用）
+# from src.routes.github_auth import router as github_auth_router
+# app.include_router(github_auth_router)
 
 # JWT 认证中间件（在所有路由之后注册，在 CORS 之后）
 from src.middleware.auth_middleware import AuthMiddleware
