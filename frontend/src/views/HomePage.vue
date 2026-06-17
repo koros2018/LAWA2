@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getSummary, getConfig, getFeed, recordAction } from '@/api/habit'
-import type { SummaryData, HabitConfig, FeedData, ActionResponse } from '@/api/habit'
+import { getSummary, getConfig, getFeed, recordAction } from '@/api/agent_main'
+import type { SummaryData, HabitConfig, FeedData, ActionResponse } from '@/api/agent_main'
 
 const summary = ref<SummaryData | null>(null)
 const config = ref<HabitConfig | null>(null)

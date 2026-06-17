@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getConfig, getSummary, getHealthInsights } from '@/api/habit'
-import type { HabitConfig, SummaryData, HealthInsightsData } from '@/api/habit'
+import { getConfig, getSummary, getHealthInsights } from '@/api/agent_main'
+import type { HabitConfig, SummaryData, HealthInsightsData } from '@/api/agent_main'
 import { session, clearSession } from '@/store/session'
 
 const router = useRouter()

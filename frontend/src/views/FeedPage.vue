@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { getFeed, recordAction, getSocialScene, updateSocialLevel } from '@/api/habit'
-import type { FeedData, ActionResponse, SocialSceneData } from '@/api/habit'
+import { getFeed, recordAction, getSocialScene, updateSocialLevel } from '@/api/agent_main'
+import type { FeedData, ActionResponse, SocialSceneData } from '@/api/agent_main'
 
 const activeTab = ref<'feed' | 'social'>('feed')
 

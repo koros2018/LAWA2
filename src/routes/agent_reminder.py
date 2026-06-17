@@ -162,3 +162,17 @@ async def get_today_holidays(
     """获取今日节假日 · Get today's holidays"""
     holidays = await reminder_engine.get_holidays_for_today(db)
     return {"status": "ok", "data": holidays}
+
+
+@router.post("/generate-greeting")
+async def generate_greeting(
+    event_id: str,
+    user_name: str = "你",
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """为纪念日生成祝福语 · Generate greeting for anniversary"""
+    greeting = await reminder_engine.generate_greeting(event_id, user_name)
+    if not greeting:
+        raise HTTPException(status_code=404, detail="事件不存在")
+    return {"status": "ok", "data": greeting}

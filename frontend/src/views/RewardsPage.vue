@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getRewards, getMilestones } from '@/api/habit'
-import type { RewardData, MilestoneData } from '@/api/habit'
+import { getRewards, getMilestones } from '@/api/agent_main'
+import type { RewardData, MilestoneData } from '@/api/agent_main'
 
 const rewards = ref<RewardData[]>([])
 const milestones = ref<MilestoneData[]>([])

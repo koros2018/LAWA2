@@ -5,7 +5,7 @@ import {
   generateGreeting,
   type ReminderEvent as ReminderEventType,
   type GreetingData,
-} from '@/api/reminder'
+} from '@/api/agent_reminder'
 
 // ── 状态 ──
 const loading = ref(true)

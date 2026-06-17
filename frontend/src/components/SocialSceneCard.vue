@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { SocialSceneData } from '@/api/habit'
-import { updateSocialLevel } from '@/api/habit'
+import type { SocialSceneData } from '@/api/agent_main'
+import { updateSocialLevel } from '@/api/agent_main'
 
 const props = defineProps<{
   scene: SocialSceneData

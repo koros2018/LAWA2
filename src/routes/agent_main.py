@@ -91,11 +91,12 @@ async def get_habits(
 
 @router.get("/feed")
 async def get_feed(
+    time_slot: str = "morning",
     engine: TriggerEngine = Depends(get_trigger_engine),
     user_id: str = Depends(get_current_user_id),
 ):
     """获取信息流 · Get info feed"""
-    result = await engine.get_daily_feed(user_id)
+    result = await engine.get_feed(user_id, time_slot)
     return {"status": "ok", "data": result}
 
 

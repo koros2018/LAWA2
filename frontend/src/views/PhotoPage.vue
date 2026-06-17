@@ -13,7 +13,7 @@ import {
   type PhotoData,
   type PhotoChat,
   type WordItem,
-} from '@/api/photo'
+} from '@/api/agent_photo'
 
 // ── 状态 ──
 const photos = ref<PhotoData[]>([])

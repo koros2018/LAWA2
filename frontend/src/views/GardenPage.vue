@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { getGarden, getGardenReport, getHealthInsights } from '@/api/habit'
-import type { GardenData, GardenReportData, HealthInsightsData } from '@/api/habit'
+import { getGarden, getGardenReport, getHealthInsights } from '@/api/agent_main'
+import type { GardenData, GardenReportData, HealthInsightsData } from '@/api/agent_main'
 
 const garden = ref<GardenData | null>(null)
 const report = ref<GardenReportData | null>(null)
