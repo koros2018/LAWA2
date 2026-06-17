@@ -91,6 +91,8 @@ router.beforeEach((to, _from, next) => {
   const isLoggedIn = !!session.user
   const needsAuth = to.matched.some(r => r.meta.requiresAuth)
   const needsProfile = to.name === 'onboarding'
+  const isAdminRoute = to.path === '/admin'
+  const isUserAdmin = session.user?.isAdmin ?? false
 
   if (needsAuth && !isLoggedIn) {
     next('/login')
@@ -102,6 +104,9 @@ router.beforeEach((to, _from, next) => {
     }
   } else if (needsProfile && !isLoggedIn) {
     next('/login')
+  } else if (isAdminRoute && !isUserAdmin) {
+    // 非管理员访问管理后台 → 重定向到首页
+    next('/')
   } else {
     next()
   }

@@ -9,7 +9,7 @@ LAWA2 — 超级管理员 Agent API
 
 权限: 仅管理员可访问 · Only admin users can access
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from loguru import logger
@@ -21,7 +21,7 @@ from src.models.user import User
 router = APIRouter(prefix="/api/v2/admin", tags=["admin"])
 
 
-async def require_admin(user_id: str = Query(..., description="User ID"), db: AsyncSession = Depends(get_db)) -> User:
+async def require_admin(user_id: str = Path(..., description="User ID"), db: AsyncSession = Depends(get_db)) -> User:
     """权限检查：仅管理员可访问 · Admin-only access check"""
     if not user_id:
         raise HTTPException(status_code=400, detail="缺少 user_id")
@@ -66,7 +66,7 @@ async def list_users(
 @router.get("/users/{user_id}")
 async def get_user_detail(
     admin_user: User = Depends(require_admin),
-    user_id: str = Query(..., description="User ID"),
+    user_id: str = Path(..., description="User ID"),
     db: AsyncSession = Depends(get_db),
 ):
     """用户详情 · User detail (admin only)"""
@@ -79,7 +79,7 @@ async def get_user_detail(
 @router.post("/users/{user_id}/toggle")
 async def toggle_user(
     admin_user: User = Depends(require_admin),
-    user_id: str = Query(..., description="User ID"),
+    user_id: str = Path(..., description="User ID"),
     db: AsyncSession = Depends(get_db),
 ):
     """切换用户激活状态 · Toggle user active status (admin only)"""
@@ -102,7 +102,7 @@ async def system_stats(
 @router.post("/users/{user_id}/admin")
 async def set_admin(
     admin_user: User = Depends(require_admin),
-    user_id: str = Query(..., description="User ID"),
+    user_id: str = Path(..., description="User ID"),
     is_admin: bool = Query(..., description="Admin status"),
     db: AsyncSession = Depends(get_db),
 ):

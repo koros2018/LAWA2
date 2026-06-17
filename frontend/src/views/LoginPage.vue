@@ -290,64 +290,7 @@ async function handleLogin() {
   margin-bottom: var(--space-xl, 2rem);
 }
 
-/* ── 微信扫码 ── */
-/* ── OAuth 区域 ── */
-.oauth-section {
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
 
-.oauth-divider {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 1rem 0;
-}
-
-.divider-line {
-  flex: 1;
-  height: 1px;
-  background: rgba(255,255,255,0.08);
-}
-
-.divider-text {
-  color: #555;
-  font-size: 0.7rem;
-  white-space: nowrap;
-}
-
-.btn-oauth {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 0.75rem;
-  color: #ccc;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
-}
-
-.btn-oauth:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.2);
-  color: #eee;
-}
-
-.github-btn:hover {
-  border-color: rgba(110, 84, 148, 0.4);
-}
-
-.oauth-icon {
-  display: inline-flex;
-  align-items: center;
-  opacity: 0.7;
-}
 
 /* ── 表单 ── */
 .login-form {

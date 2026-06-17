@@ -91,6 +91,7 @@ async def login(
                 "learn_lang": user.learn_lang,
                 "has_profile": False,
                 "is_new_user": True,
+                "is_admin": user.is_admin,
                 "token": create_token(user.id, user.username),
             }
         }
@@ -109,6 +110,7 @@ async def login(
             "current_level": user.current_level,
             "has_profile": has_profile,
             "is_new_user": not has_profile,
+            "is_admin": user.is_admin,
                 "token": create_token(user.id, user.username),
         }
     }
@@ -197,6 +199,7 @@ async def get_current_user_info(
             "current_level": user.current_level,
             "avatar_url": user.avatar_url,
             "email": user.email,
+            "is_admin": user.is_admin,
         },
     }
 

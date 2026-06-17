@@ -14,12 +14,18 @@ interface AgentItem {
   route: string
 }
 
-const agents: AgentItem[] = [
-  { key: 'main', label: '语言日常', labelEn: 'Daily', icon: '🧠', route: '/' },
-  { key: 'reminder', label: '事项提醒', labelEn: 'Reminder', icon: '📅', route: '/reminder' },
-  { key: 'photo', label: '拍照理解', labelEn: 'Photo', icon: '📸', route: '/photo' },
-  { key: 'admin', label: '管理', labelEn: 'Admin', icon: '⚙️', route: '/admin' },
-]
+const agents = computed(() => {
+  const base: AgentItem[] = [
+    { key: 'main', label: '语言日常', labelEn: 'Daily', icon: '🧠', route: '/' },
+    { key: 'reminder', label: '事项提醒', labelEn: 'Reminder', icon: '📅', route: '/reminder' },
+    { key: 'photo', label: '拍照理解', labelEn: 'Photo', icon: '📸', route: '/photo' },
+  ]
+  // 仅管理员可见管理后台 · Admin tab only visible to admin users
+  if (session.user?.isAdmin) {
+    base.push({ key: 'admin', label: '管理', labelEn: 'Admin', icon: '⚙️', route: '/admin' })
+  }
+  return base
+})
 
 // 当前激活的 Agent
 const currentAgent = computed(() => {

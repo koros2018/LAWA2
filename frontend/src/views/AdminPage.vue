@@ -9,6 +9,7 @@ import {
   type SystemStats,
   type UserAdmin,
   type UsersListResponse,
+  type SetAdminResponse,
 } from '@/api/admin'
 
 const activeTab = ref<'stats' | 'users'>('stats')
@@ -113,6 +114,7 @@ onMounted(() => {
       created_at: '',
       updated_at: '',
     }
+    console.log('Current user:', currentUser.value.username, 'isAdmin:', currentUser.value.is_admin)
   }
   loadStats()
   loadUsers()
