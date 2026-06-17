@@ -185,3 +185,27 @@ async def get_photo_chats(
         return {"status": "ok", "data": chats}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/{photo_id}/share")
+async def share_photo_to_bridge(
+    photo_id: str,
+    user_id: str,
+    target_type: str = "greet",
+    db: AsyncSession = Depends(get_db),
+):
+    """将图片理解分享到桥梁对话 · Share photo understanding to bridge conversation"""
+    if not user_id:
+        raise HTTPException(status_code=400, detail="缺少 user_id")
+    try:
+        result = await photo_engine.share_to_bridge(
+            photo_id=photo_id,
+            user_id=user_id,
+            target_type=target_type,
+        )
+        return {"status": "ok", "data": result}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"分享失败: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
