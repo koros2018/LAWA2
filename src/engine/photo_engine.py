@@ -20,7 +20,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 
 from src.models.photo import PhotoUnderstanding, PhotoChat
+from src.models.bridge import BridgeInteraction
+from src.models.user import User
+from src.database.main import AsyncSessionLocal
 from src.services.llm_service import llm_service
+from fastapi import HTTPException
 
 
 # ── 存储路径 ──
@@ -390,6 +394,48 @@ class PhotoEngine:
             "chat_count": photo.chat_count or 0,
             "created_at": photo.created_at.isoformat(),
         }
+
+    async def share_to_bridge(self, photo_id: str, user_id: str, target_type: str = "greet") -> dict:
+        """将图片理解分享到桥梁对话
+        target_type: greet/like/teach/group/offline
+        """
+        async with AsyncSessionLocal() as session:
+            # 1. 获取图片理解
+            stmt = select(PhotoUnderstanding).where(PhotoUnderstanding.id == photo_id)
+            understanding = (await session.execute(stmt)).scalar_one_or_none()
+            if not understanding:
+                raise HTTPException(status_code=404, detail="图片理解不存在")
+
+            # 2. 获取图片
+            img_stmt = select(Photo).where(Photo.id == understanding.photo_id)
+            photo = (await session.execute(img_stmt)).scalar_one_or_none()
+
+            # 3. 创建桥梁交互记录
+            interaction = BridgeInteraction(
+                user_id=user_id,
+                partner_name="AI 语伴",
+                message=understanding.description,
+                translation=understanding.description_en,
+                context=f"来自照片理解: {photo.description if photo else ''}",
+                direction="out",
+                level=target_type,
+            )
+            session.add(interaction)
+
+            # 4. 更新用户 XP
+            user_stmt = select(User).where(User.id == user_id)
+            user = (await session.execute(user_stmt)).scalar_one_or_none()
+            if user:
+                user.growth_xp = (user.growth_xp or 0) + 10
+
+            await session.commit()
+
+            return {
+                "status": "ok",
+                "interaction_id": interaction.id,
+                "xp_earned": 10,
+                "message": f"已将「{understanding.description[:20]}...」分享到桥梁 {target_type}",
+            }
 
 
 # 全局单例

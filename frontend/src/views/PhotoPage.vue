@@ -9,6 +9,7 @@ import {
   getPhotoChats,
   getPhotoImageUrl,
   getPhotoThumbnailUrl,
+  sharePhotoToBridge,
   type PhotoData,
   type PhotoChat,
   type WordItem,
@@ -24,6 +25,9 @@ const uploading = ref(false)
 const galleryOpen = ref(false)
 const chatEndRef = ref<HTMLElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
+const wordModalOpen = ref(false)
+const currentWord = ref<WordItem | null>(null)
+const shareLoading = ref(false)
 
 const chatMode = ref<'photo_chat' | 'free_chat'>('free_chat')
 const freeChats = ref<{ role: string; content: string; content_en: string }[]>([])
@@ -137,7 +141,21 @@ function scrollToBottom() {
 }
 
 function showWordDetail(word: WordItem) {
-  alert(`${word.word}\n${word.zh} / ${word.en}\n例: ${word.example}`)
+  currentWord.value = word
+  wordModalOpen.value = true
+}
+
+async function handleShareToBridge(targetType: string = 'greet') {
+  if (!currentPhoto.value || !userId.value) return
+  shareLoading.value = true
+  try {
+    const result = await sharePhotoToBridge(currentPhoto.value.id, targetType)
+    alert(`✅ ${result.data.message}  +${result.data.xp_earned} XP`)
+  } catch (e: any) {
+    alert(`❌ 分享失败: ${e.message || 'unknown'}`)
+  } finally {
+    shareLoading.value = false
+  }
 }
 
 function formatSize(bytes: number): string {
@@ -173,6 +191,15 @@ onMounted(() => { loadHistory() })
             <button v-for="(word, i) in currentPhoto.extracted_words.slice(0, 6)" :key="i" class="word-chip" @click="showWordDetail(word)">
               <span class="word-text">{{ word.word }}</span>
               <span class="word-zh">{{ word.zh }}</span>
+            </button>
+          </div>
+          <div class="share-actions">
+            <span class="share-label">🔗 分享到桥梁 · Share to Bridge</span>
+            <button class="share-btn" :disabled="shareLoading" @click="handleShareToBridge('greet')" title="分享到问候语">
+              {{ shareLoading ? '发送中...' : '🌉 问候' }}
+            </button>
+            <button class="share-btn" :disabled="shareLoading" @click="handleShareToBridge('teach')" title="分享到教学">
+              {{ shareLoading ? '发送中...' : '📚 教学' }}
             </button>
           </div>
         </div>
@@ -228,6 +255,40 @@ onMounted(() => { loadHistory() })
         <button class="send-btn" :disabled="!message.trim()" @click="sendMessage">➤</button>
       </div>
     </div>
+
+    <!-- ── 词汇卡片 Modal ── -->
+    <Transition name="fade-scale">
+      <div v-if="wordModalOpen" class="modal-overlay" @click="wordModalOpen = false">
+        <div class="word-modal" @click.stop>
+          <div class="modal-header">
+            <span class="modal-title">✨ 词汇卡片 · Word Card</span>
+            <button class="modal-close" @click="wordModalOpen = false">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="word-main">{{ currentWord?.word }}</div>
+            <div class="word-meaning">
+              <span class="zh">{{ currentWord?.zh }}</span>
+              <span class="en">{{ currentWord?.en }}</span>
+            </div>
+            <div class="word-example">
+              <span class="example-label">💬 例句 · Example</span>
+              <p class="example-en">{{ currentWord?.example }}</p>
+              <p class="example-zh">{{ currentWord?.example_zh }}</p>
+            </div>
+            <div class="word-tags">
+              <span v-if="currentWord?.part_of_speech" class="pos-tag">{{ currentWord.part_of_speech }}</span>
+              <span v-if="currentWord?.level" class="level-tag">{{ currentWord.level }}</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="modal-action-btn" @click="wordModalOpen = false">关闭 · Close</button>
+            <button class="modal-action-btn primary" @click="handleShareToBridge('teach')" :disabled="shareLoading">
+              {{ shareLoading ? '发送中...' : '🔗 分享到桥梁' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <Transition name="slide-up">
       <div v-if="galleryOpen" class="gallery-drawer">
@@ -307,11 +368,83 @@ onMounted(() => { loadHistory() })
 .word-text { font-size: 0.85rem; color: #818cf8; font-weight: 600; }
 .word-zh { font-size: 0.65rem; color: var(--text-muted, #888); }
 
+/* ── 分享按钮 ── */
+.share-actions {
+  display: flex; align-items: center; gap: 0.4rem; margin-top: 0.6rem; padding: 0.5rem;
+  background: rgba(167, 139, 250, 0.05); border-radius: 0.5rem;
+}
+.share-label { font-size: 0.7rem; color: var(--text-muted, #888); }
+.share-btn {
+  background: rgba(167, 139, 250, 0.15); border: 1px solid rgba(167, 139, 250, 0.3);
+  color: #c084fc; border-radius: 0.4rem; padding: 0.3rem 0.6rem; font-size: 0.75rem;
+  cursor: pointer; transition: all 0.2s; font-weight: 500;
+}
+.share-btn:hover:not(:disabled) { background: rgba(167, 139, 250, 0.3); }
+.share-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── 词汇卡片 Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); z-index: 100;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.word-modal {
+  background: linear-gradient(180deg, rgba(30, 30, 60, 0.98), rgba(20, 20, 45, 0.98));
+  border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 1rem; width: 100%; max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); overflow: hidden;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.15);
+}
+.modal-title { font-size: 0.95rem; font-weight: 600; color: #c084fc; }
+.modal-close {
+  background: none; border: none; color: var(--text-muted, #888); font-size: 1.2rem;
+  cursor: pointer; padding: 0.2rem 0.4rem; border-radius: 0.3rem; transition: all 0.2s;
+}
+.modal-close:hover { background: rgba(255,255,255,0.08); color: white; }
+.modal-body { padding: 1.5rem 1.2rem; }
+.word-main { font-size: 1.8rem; font-weight: 700; color: #818cf8; text-align: center; margin-bottom: 0.5rem; }
+.word-meaning { text-align: center; margin-bottom: 1rem; }
+.word-meaning .zh { font-size: 1.1rem; color: var(--text-primary, #eee); }
+.word-meaning .en { font-size: 0.95rem; color: var(--text-muted, #888); margin-left: 0.5rem; }
+.word-example { background: rgba(99, 102, 241, 0.08); border-radius: 0.6rem; padding: 0.8rem 1rem; margin-bottom: 0.8rem; }
+.example-label { font-size: 0.7rem; color: var(--text-muted, #888); display: block; margin-bottom: 0.3rem; }
+.example-en { font-size: 0.9rem; color: #a78bfa; line-height: 1.5; margin-bottom: 0.3rem; }
+.example-zh { font-size: 0.85rem; color: var(--text-secondary, #aaa); line-height: 1.4; }
+.word-tags { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; }
+.pos-tag, .level-tag {
+  background: rgba(167, 139, 250, 0.12); border: 1px solid rgba(167, 139, 250, 0.2);
+  color: #c084fc; padding: 0.15rem 0.6rem; border-radius: 1rem; font-size: 0.75rem;
+}
+.modal-footer {
+  display: flex; gap: 0.6rem; padding: 1rem 1.2rem;
+  border-top: 1px solid rgba(167, 139, 250, 0.15); background: rgba(0,0,0,0.15);
+}
+.modal-action-btn {
+  flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary, #aaa); border-radius: 0.5rem; padding: 0.5rem;
+  font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
+}
+.modal-action-btn:hover:not(:disabled) { background: rgba(255,255,255,0.1); }
+.modal-action-btn.primary {
+  background: linear-gradient(135deg, #7c3aed, #6366f1); border: none;
+  color: white; font-weight: 600;
+}
+.modal-action-btn.primary:hover:not(:disabled) { opacity: 0.9; }
+.modal-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Modal 动画 ── */
+.fade-scale-enter-active, .fade-scale-leave-active { transition: all 0.25s ease; }
+.fade-scale-enter-from { opacity: 0; transform: scale(0.9) translateY(10px); }
+.fade-scale-leave-to { opacity: 0; transform: scale(0.9) translateY(-10px); }
+
 .chat-area { flex: 1; overflow-y: auto; padding: 0 1rem 0.5rem; display: flex; flex-direction: column; }
 .word-banner { display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0; flex-wrap: wrap; flex-shrink: 0; }
 .word-banner-label { font-size: 0.7rem; color: var(--text-muted, #888); }
 .word-pill { background: rgba(167, 139, 250, 0.12); border: none; color: #c084fc; padding: 0.2rem 0.5rem; border-radius: 0.5rem; font-size: 0.7rem; cursor: pointer; }
 .word-pill:hover { background: rgba(167, 139, 250, 0.25); }
+.share-actions { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.6rem; padding: 0.5rem; background: rgba(167, 139, 250, 0.05); border-radius: 0.5rem; flex-wrap: wrap; }
+.share-label { font-size: 0.7rem; color: var(--text-muted, #888); }
 
 .chat-messages { flex: 1; overflow-y: auto; padding: 0.5rem 0; display: flex; flex-direction: column; gap: 0.6rem; }
 .chat-bubble { max-width: 85%; padding: 0.6rem 0.8rem; border-radius: 0.8rem; }

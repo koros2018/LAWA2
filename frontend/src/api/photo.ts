@@ -35,6 +35,15 @@ export interface PhotoChat {
   created_at: string
 }
 
+export interface ShareResult {
+  status: string
+  data: {
+    interaction_id: string
+    xp_earned: number
+    message: string
+  }
+}
+
 export function getPhotoImageUrl(photoId: string): string {
   const uid = getUserId()
   return `${BASE}/${photoId}/image?user_id=${uid}`
@@ -66,4 +75,9 @@ export async function getPhotoChats(photoId: string, userId: string): Promise<Ph
 
 export async function getPhotoHistory(userId: string, limit: number = 20, offset: number = 0): Promise<PhotoData[]> {
   return apiGet<PhotoData[]>(`${BASE}/list?user_id=${userId}&limit=${limit}&offset=${offset}`)
+}
+
+export async function sharePhotoToBridge(photoId: string, targetType: string = 'greet'): Promise<ShareResult> {
+  const uid = getUserId()
+  return apiPost<ShareResult>(`${BASE}/${photoId}/share?user_id=${uid}&target_type=${targetType}`, {})
 }
