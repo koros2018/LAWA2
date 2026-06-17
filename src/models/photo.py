@@ -6,9 +6,9 @@ LAWA2 — 拍照理解数据模型
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Integer, JSON
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
-Base = declarative_base()
+from src.database.main import Base
 
 
 def _utcnow():
