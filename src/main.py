@@ -18,6 +18,7 @@ from src.routes.photo import router as photo_router
 from src.routes.admin import router as admin_router
 from src.routes.seed_content import router as seed_content_router
 from src.routes.logs import router as logs_router
+from src.routes.errors import router as errors_router
 import src.models  # 确保所有模型在 init_db 前注册
 
 
@@ -61,6 +62,7 @@ app.include_router(photo_router)
 app.include_router(admin_router)
 app.include_router(seed_content_router)
 app.include_router(logs_router)
+app.include_router(errors_router)
 
 # 已移除：github_auth router（经常失效且无用）
 # from src.routes.github_auth import router as github_auth_router
@@ -69,6 +71,10 @@ app.include_router(logs_router)
 # JWT 认证中间件（在所有路由之后注册，在 CORS 之后）
 from src.middleware.auth_middleware import AuthMiddleware
 app.add_middleware(AuthMiddleware)
+
+# 错误监控中间件（全局异常捕获）
+from src.middleware.error_monitor import ErrorMonitorMiddleware
+app.add_middleware(ErrorMonitorMiddleware)
 
 
 # ── 健康检查 ──

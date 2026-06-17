@@ -83,6 +83,12 @@ const routes = [
     component: () => import('@/views/LogsPage.vue'),
     meta: { title: '日志 · Logs', icon: '📋', requiresAuth: true, agent: 'admin' },
   },
+  {
+    path: '/errors',
+    name: 'errors',
+    component: () => import('@/views/ErrorMonitorPage.vue'),
+    meta: { title: '错误监控 · Errors', icon: '🔴', requiresAuth: true, agent: 'admin' },
+  },
 ]
 
 const router = createRouter({
