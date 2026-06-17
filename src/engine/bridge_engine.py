@@ -389,6 +389,116 @@ class BridgeEngine:
                 "partner_thanks": thanks, "xp_earned": xp_earned,
             }
 
+    # ── Lv.4 群聊桥 — 模拟多人群聊场景 ──
+
+    GROUP_SCENES = {
+        "en": [
+            {
+                "scene": "📱 WhatsApp 群聊 — 'Weekend Plans'",
+                "context": "Bob 把你拉进了一个 WhatsApp 群，里面是他的几个朋友。大家在讨论周末计划。",
+                "members": [
+                    {"name": "Bob", "role": "你的语伴"},
+                    {"name": "Mike", "role": "程序员，爱开玩笑"},
+                    {"name": "Sarah", "role": "设计师，喜欢旅行"},
+                ],
+                "initial_messages": [
+                    {"from": "Mike", "text": "Yo! Anyone up for hiking this weekend? The weather's supposed to be sick 🔥"},
+                    {"from": "Sarah", "text": "Ooh I'm in! Where are you thinking?"},
+                    {"from": "Bob", "text": "Hey you're here! This is my language buddy. Everyone say hi! 👋"},
+                ],
+            },
+            {
+                "scene": "💼 Slack 工作群 — 'Project Launch'",
+                "context": "你被拉入了一个英文工作群。团队正在讨论产品发布计划。",
+                "members": [
+                    {"name": "Alex", "role": "项目经理"},
+                    {"name": "Jenny", "role": "开发者"},
+                    {"name": "Tom", "role": "设计师"},
+                ],
+                "initial_messages": [
+                    {"from": "Alex", "text": "Team, we need to finalize the launch timeline. Any blockers?"},
+                    {"from": "Jenny", "text": "Backend is on track. Just waiting for the design assets."},
+                    {"from": "Tom", "text": "Designs are 90% done. Should be ready by EOD tomorrow."},
+                ],
+            },
+        ],
+        "zh": [
+            {
+                "scene": "📱 微信群聊 — '周末约饭'",
+                "context": "Alice 把你拉进了一个微信群。她的朋友们正在讨论周末聚餐。",
+                "members": [
+                    {"name": "Alice", "role": "你的语伴"},
+                    {"name": "小明", "role": "程序员，吃货"},
+                    {"name": "小红", "role": "设计师，喜欢探店"},
+                ],
+                "initial_messages": [
+                    {"from": "小明", "text": "周末了！有人想去吃那家新开的火锅吗？🍲"},
+                    {"from": "小红", "text": "我！我！听说他家的毛肚特别好吃"},
+                    {"from": "Alice", "text": "嘿，这就是我跟你们说的语伴！大家欢迎一下～ 👋"},
+                ],
+            },
+            {
+                "scene": "💼 钉钉工作群 — '项目上线'",
+                "context": "你被拉入了一个中文工作群。团队在讨论上线计划。",
+                "members": [
+                    {"name": "王经理", "role": "项目经理"},
+                    {"name": "小李", "role": "后端开发"},
+                    {"name": "小张", "role": "前端开发"},
+                ],
+                "initial_messages": [
+                    {"from": "王经理", "text": "大家，上线计划需要确认。有没有什么阻塞？"},
+                    {"from": "小李", "text": "后端没问题了，等前端合代码。"},
+                    {"from": "小张", "text": "前端快好了，明天中午前能合进去。"},
+                ],
+            },
+        ],
+    }
+
+    # ── Lv.5 线下桥 — 模拟真实场景 ──
+
+    OFFLINE_SCENES = {
+        "en": [
+            {
+                "scene": "☕ 咖啡店 — 'Ordering Coffee'",
+                "context": "你走进了一家纽约的独立咖啡店。店员正在柜台后等你点单。",
+                "npc": {"name": "Barista", "role": "咖啡师"},
+                "initial_message": "Hey there! Welcome to Brew Lab. What can I get started for you today?",
+            },
+            {
+                "scene": "🎤 脱口秀 — 'After Show Chat'",
+                "context": "你在看一场英文脱口秀。演出结束后，你遇到了其中一位演员。",
+                "npc": {"name": "Comedian", "role": "脱口秀演员"},
+                "initial_message": "Hey! Thanks for coming tonight. What did you think of the show?",
+            },
+            {
+                "scene": "✈️ 机场 — 'Missed Connection'",
+                "context": "你在机场转机，航班延误了。旁边座位的人开始跟你搭话。",
+                "npc": {"name": "Fellow Traveler", "role": "同机旅客"},
+                "initial_message": "Rough day, huh? Mine's been delayed three hours. You too?",
+            },
+        ],
+        "zh": [
+            {
+                "scene": "☕ 咖啡馆 — '点单'",
+                "context": "你走进了一家上海的小众咖啡馆。店员微笑着等你点单。",
+                "npc": {"name": "咖啡师小刘", "role": "咖啡师"},
+                "initial_message": "您好！欢迎光临。想喝点什么？",
+            },
+            {
+                "scene": "🏪 便利店 — '结账闲聊'",
+                "context": "深夜你在便利店买东西。收银台的大叔看起来很友善。",
+                "npc": {"name": "便利店大叔", "role": "收银员"},
+                "initial_message": "小伙子/小姑娘，这么晚还买东西啊？加班还是打游戏？😄",
+            },
+            {
+                "scene": "🏥 医院 — '挂号'",
+                "context": "你有点不舒服，去社区医院看病。护士在分诊台问你情况。",
+                "npc": {"name": "护士姐姐", "role": "分诊护士"},
+                "initial_message": "你好，哪里不舒服？来，先量个体温。",
+            },
+        ],
+    }
+
     async def get_history(self, user_id: str, limit: int = 10) -> list:
         """获取桥梁交互历史"""
         async with AsyncSessionLocal() as session:
@@ -406,6 +516,216 @@ class BridgeEngine:
                 for m in result.scalars().all()
             ]
 
+    # ── Lv.4 群聊桥 ──
+
+    async def get_group_prompt(self, user_id: str) -> dict:
+        """Lv.4 群聊桥 — 获取一个模拟群聊场景"""
+        async with AsyncSessionLocal() as session:
+            stmt = select(User).where(User.id == user_id)
+            user = (await session.execute(stmt)).scalar_one_or_none()
+            learn_lang = user.learn_lang if user else "en"
+            scenes = self.GROUP_SCENES.get(learn_lang, self.GROUP_SCENES["en"])
+            scene = random.choice(scenes)
+            partner = await self.get_partner(user_id)
+            # 生成 scene_text（把消息拼接成一段展示文本）
+            messages_text = "\n".join(
+                [f"{m['from']}: {m['text']}" for m in scene["initial_messages"]]
+            )
+            members_text = ", ".join([f"{m['name']}({m['role']})" for m in scene["members"]])
+            interaction = BridgeInteraction(
+                user_id=user_id, partner_id=partner["partner_id"],
+                level=4, direction="receive",
+                learn_text=scene["scene"],
+                native_text=scene["context"],
+            )
+            session.add(interaction)
+            await session.commit()
+            return {
+                "interaction_id": interaction.id,
+                "partner_name": partner["partner_name"],
+                "scene": scene["scene"],
+                "context": scene["context"],
+                "members": scene["members"],
+                "initial_messages": scene["initial_messages"],
+                "messages_text": messages_text,
+                "members_text": members_text,
+                "level": 4,
+                "direction": learn_lang,
+                "created_at": interaction.created_at.isoformat(),
+            }
+
+    async def group_reply(self, user_id: str, interaction_id: str, reply_text: str) -> dict:
+        """Lv.4 用户在群里发言，LLM 模拟群友回复"""
+        async with AsyncSessionLocal() as session:
+            stmt = select(BridgeInteraction).where(
+                BridgeInteraction.id == interaction_id,
+                BridgeInteraction.user_id == user_id,
+            )
+            interaction = (await session.execute(stmt)).scalar_one_or_none()
+            if not interaction:
+                raise ValueError("Interaction not found")
+
+            from src.services.llm_service import llm_service
+            prompt = f"""你是一个AI语伴。以下是一个多人群聊场景：
+
+场景: {interaction.learn_text or '群聊'}
+
+用户刚刚在群里说了一句话："{reply_text}"
+
+请模拟群里的其他成员回复。每个成员回复1-2句话。
+回复格式（JSON）：
+{{
+  "replies": [
+    {{"from": "名字", "text": "回复内容"}},
+    ...
+  ]
+}}
+
+让回复自然、有趣，像是真实的群聊互动。如果用户说得不对，可以用友善的方式纠正。"""
+
+            try:
+                result = await llm_service.chat_json(
+                    messages=[{"role": "user", "content": prompt}],
+                    task="bridge",
+                    temperature=0.8,
+                )
+                replies = result.get("replies", [])
+            except Exception as e:
+                logger.warning(f"LLM群聊回复失败，用种子兜底: {e}")
+                replies = [
+                    {"from": "Bob", "text": f"Nice! {reply_text[:30]}... I like that! 😄"},
+                    {"from": "Sarah", "text": "Totally agree!"},
+                ]
+
+            xp_earned = 15
+            replies_text = "\n".join([f"{r['from']}: {r['text']}" for r in replies])
+            interaction.polished_text = reply_text
+            interaction.partner_reply = replies_text
+            interaction.xp_earned = xp_earned
+            interaction.is_read = True
+
+            user_stmt = select(User).where(User.id == user_id)
+            user = (await session.execute(user_stmt)).scalar_one_or_none()
+            if user:
+                if not user.bridge_level or user.bridge_level < 4:
+                    user.bridge_level = 4
+                user.growth_xp = (user.growth_xp or 0) + xp_earned
+            await session.commit()
+
+            return {
+                "status": "ok",
+                "your_reply": reply_text,
+                "group_replies": replies,
+                "replies_text": replies_text,
+                "xp_earned": xp_earned,
+            }
+
+    # ── Lv.5 线下桥 ──
+
+    async def get_offline_prompt(self, user_id: str) -> dict:
+        """Lv.5 线下桥 — 获取一个模拟现实场景"""
+        async with AsyncSessionLocal() as session:
+            stmt = select(User).where(User.id == user_id)
+            user = (await session.execute(stmt)).scalar_one_or_none()
+            learn_lang = user.learn_lang if user else "en"
+            scenes = self.OFFLINE_SCENES.get(learn_lang, self.OFFLINE_SCENES["en"])
+            scene = random.choice(scenes)
+            partner = await self.get_partner(user_id)
+            interaction = BridgeInteraction(
+                user_id=user_id, partner_id=partner["partner_id"],
+                level=5, direction="receive",
+                learn_text=scene["scene"],
+                native_text=scene["context"],
+            )
+            session.add(interaction)
+            await session.commit()
+            return {
+                "interaction_id": interaction.id,
+                "partner_name": partner["partner_name"],
+                "scene": scene["scene"],
+                "context": scene["context"],
+                "npc": scene["npc"],
+                "initial_message": scene["initial_message"],
+                "level": 5,
+                "direction": learn_lang,
+                "created_at": interaction.created_at.isoformat(),
+            }
+
+    async def offline_reply(self, user_id: str, interaction_id: str, reply_text: str) -> dict:
+        """Lv.5 用户在场景中回复，LLM 模拟 NPC 回应"""
+        async with AsyncSessionLocal() as session:
+            stmt = select(BridgeInteraction).where(
+                BridgeInteraction.id == interaction_id,
+                BridgeInteraction.user_id == user_id,
+            )
+            interaction = (await session.execute(stmt)).scalar_one_or_none()
+            if not interaction:
+                raise ValueError("Interaction not found")
+
+            from src.services.llm_service import llm_service
+            prompt = f"""你是一个角色扮演助手。以下是一个真实场景：
+
+场景: {interaction.learn_text or '线下互动'}
+背景: {interaction.native_text or '一个日常场景'}
+
+NPC 刚才说：需要从上下文中推断。
+用户回复："{reply_text}"
+
+请模拟 NPC 继续对话。回复应该自然、符合场景和角色设定。
+如果用户表达有误，可以用友善的方式在回复中示范正确说法。
+
+回复格式（JSON）：
+{{
+  "npc_reply": "NPC的回复内容（1-3句话）",
+  "npc_action": "（可选）NPC的小动作，如 '笑了笑' '递过菜单'",
+  "culture_tip": "（可选）相关的文化小提示"
+}}"""
+
+            try:
+                result = await llm_service.chat_json(
+                    messages=[{"role": "user", "content": prompt}],
+                    task="bridge",
+                    temperature=0.8,
+                )
+                npc_reply = result.get("npc_reply", "")
+                npc_action = result.get("npc_action", "")
+                culture_tip = result.get("culture_tip", "")
+            except Exception as e:
+                logger.warning(f"LLM线下回复失败，用种子兜底: {e}")
+                npc_reply = f"Got it! {reply_text[:30]}... Cool! Let's continue! 😊"
+                npc_action = "微笑着点了点头"
+                culture_tip = ""
+
+            xp_earned = 20
+            full_reply = npc_reply
+            if npc_action:
+                full_reply = f"*{npc_action}*\n{npc_reply}"
+            if culture_tip:
+                full_reply += f"\n\n💡 文化小提示: {culture_tip}"
+
+            interaction.polished_text = reply_text
+            interaction.partner_reply = full_reply
+            interaction.xp_earned = xp_earned
+            interaction.is_read = True
+
+            user_stmt = select(User).where(User.id == user_id)
+            user = (await session.execute(user_stmt)).scalar_one_or_none()
+            if user:
+                if not user.bridge_level or user.bridge_level < 5:
+                    user.bridge_level = 5
+                user.growth_xp = (user.growth_xp or 0) + xp_earned
+            await session.commit()
+
+            return {
+                "status": "ok",
+                "your_reply": reply_text,
+                "npc_reply": npc_reply,
+                "npc_action": npc_action,
+                "culture_tip": culture_tip,
+                "full_reply": full_reply,
+                "xp_earned": xp_earned,
+            }
+
     async def get_progress(self, user_id: str) -> dict:
         """获取桥梁进度"""
         async with AsyncSessionLocal() as session:
@@ -419,16 +739,22 @@ class BridgeEngine:
 
             lv2_cond = total_interactions >= 3
             lv3_cond = total_interactions >= 6
+            lv4_cond = total_interactions >= 10
+            lv5_cond = total_interactions >= 15
             return {
                 "current_level": level,
                 "total_interactions": total_interactions,
                 "total_xp": total_xp,
-                "next_level_at": f"Lv.2 需要 3 次交互（当前 {total_interactions}/3）",
+                "next_level_at": f"Lv.2 需要 3 次互动（当前 {total_interactions}/3）" if level < 2
+                    else f"Lv.3 需要 6 次互动（当前 {total_interactions}/6）" if level < 3
+                    else f"Lv.4 需要 10 次互动（当前 {total_interactions}/10）" if level < 4
+                    else f"Lv.5 需要 15 次互动（当前 {total_interactions}/15）" if level < 5
+                    else "🎉 已满级！继续互动累积 XP",
                 "levels": [
-                    {"level": 1, "name": "你好桥", "unlocked": level >= 1, "done": total_interactions >= 1},
-                    {"level": 2, "name": "点赞桥", "unlocked": level >= 2 or lv2_cond, "done": total_interactions >= 3},
-                    {"level": 3, "name": "梗桥", "unlocked": level >= 3 or lv3_cond, "done": total_interactions >= 6},
-                    {"level": 4, "name": "群聊桥", "unlocked": False, "done": False},
-                    {"level": 5, "name": "线下桥", "unlocked": False, "done": False},
+                    {"level": 1, "name": "你好桥 · Greet", "unlocked": level >= 1, "done": total_interactions >= 1},
+                    {"level": 2, "name": "点赞桥 · Like", "unlocked": level >= 2 or lv2_cond, "done": total_interactions >= 3},
+                    {"level": 3, "name": "梗桥 · Teach", "unlocked": level >= 3 or lv3_cond, "done": total_interactions >= 6},
+                    {"level": 4, "name": "群聊桥 · Group", "unlocked": level >= 4 or lv4_cond, "done": total_interactions >= 10},
+                    {"level": 5, "name": "线下桥 · Offline", "unlocked": level >= 5 or lv5_cond, "done": total_interactions >= 15},
                 ],
             }

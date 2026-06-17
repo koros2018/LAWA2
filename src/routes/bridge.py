@@ -52,6 +52,14 @@ class TeachRequest(BaseModel):
     meaning: str
     example: str = ""
 
+class GroupReplyRequest(BaseModel):
+    interaction_id: str
+    reply_text: str
+
+class OfflineReplyRequest(BaseModel):
+    interaction_id: str
+    reply_text: str
+
 
 # ── 路由 ──
 
@@ -146,6 +154,58 @@ async def get_teach_prompt(
     """获取一条教梗提示（语伴想学一个词）"""
     result = await engine.get_teach_prompt(user_id)
     return {"status": "ok", "data": result}
+
+
+# ── Lv.4 群聊桥 ──
+
+@router.get("/group")
+async def get_group_prompt(
+    engine: BridgeEngine = Depends(get_bridge_engine),
+    user_id: str = Depends(get_user_id),
+):
+    """获取一个群聊场景"""
+    result = await engine.get_group_prompt(user_id)
+    return {"status": "ok", "data": result}
+
+
+@router.post("/group")
+async def group_reply(
+    body: GroupReplyRequest,
+    engine: BridgeEngine = Depends(get_bridge_engine),
+    user_id: str = Depends(get_user_id),
+):
+    """用户在群聊中发言"""
+    try:
+        result = await engine.group_reply(user_id, body.interaction_id, body.reply_text)
+        return {"status": "ok", "data": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ── Lv.5 线下桥 ──
+
+@router.get("/offline")
+async def get_offline_prompt(
+    engine: BridgeEngine = Depends(get_bridge_engine),
+    user_id: str = Depends(get_user_id),
+):
+    """获取一个线下场景"""
+    result = await engine.get_offline_prompt(user_id)
+    return {"status": "ok", "data": result}
+
+
+@router.post("/offline")
+async def offline_reply(
+    body: OfflineReplyRequest,
+    engine: BridgeEngine = Depends(get_bridge_engine),
+    user_id: str = Depends(get_user_id),
+):
+    """用户在线下场景中回复"""
+    try:
+        result = await engine.offline_reply(user_id, body.interaction_id, body.reply_text)
+        return {"status": "ok", "data": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/teach")

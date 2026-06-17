@@ -112,6 +112,69 @@ export interface BridgeHistory {
   created_at: string
 }
 
+// ── Lv.4 群聊桥 ──
+
+export interface GroupMember {
+  name: string
+  role: string
+}
+
+export interface GroupMessage {
+  from: string
+  text: string
+}
+
+export interface BridgeGroupPrompt {
+  interaction_id: string
+  partner_name: string
+  scene: string
+  context: string
+  members: GroupMember[]
+  initial_messages: GroupMessage[]
+  messages_text: string
+  members_text: string
+  level: number
+  direction: string
+  created_at: string
+}
+
+export interface BridgeGroupResult {
+  status: string
+  your_reply: string
+  group_replies: GroupMessage[]
+  replies_text: string
+  xp_earned: number
+}
+
+// ── Lv.5 线下桥 ──
+
+export interface OfflineNpc {
+  name: string
+  role: string
+}
+
+export interface BridgeOfflinePrompt {
+  interaction_id: string
+  partner_name: string
+  scene: string
+  context: string
+  npc: OfflineNpc
+  initial_message: string
+  level: number
+  direction: string
+  created_at: string
+}
+
+export interface BridgeOfflineResult {
+  status: string
+  your_reply: string
+  npc_reply: string
+  npc_action: string
+  culture_tip: string
+  full_reply: string
+  xp_earned: number
+}
+
 export interface BridgeProgress {
   current_level: number
   total_interactions: number
@@ -158,6 +221,32 @@ export async function getBridgeLikePrompt(): Promise<BridgeLikePrompt> {
 
 export async function replyBridgeLike(interactionId: string, replyText: string): Promise<BridgeReply> {
   return bridgeFetch(withUser('/like'), {
+    method: 'POST',
+    body: JSON.stringify({ interaction_id: interactionId, reply_text: replyText }),
+  })
+}
+
+// ── Lv.4 群聊桥 ──
+
+export async function getBridgeGroupPrompt(): Promise<BridgeGroupPrompt> {
+  return bridgeFetch(withUser('/group'))
+}
+
+export async function replyBridgeGroup(interactionId: string, replyText: string): Promise<BridgeGroupResult> {
+  return bridgeFetch(withUser('/group'), {
+    method: 'POST',
+    body: JSON.stringify({ interaction_id: interactionId, reply_text: replyText }),
+  })
+}
+
+// ── Lv.5 线下桥 ──
+
+export async function getBridgeOfflinePrompt(): Promise<BridgeOfflinePrompt> {
+  return bridgeFetch(withUser('/offline'))
+}
+
+export async function replyBridgeOffline(interactionId: string, replyText: string): Promise<BridgeOfflineResult> {
+  return bridgeFetch(withUser('/offline'), {
     method: 'POST',
     body: JSON.stringify({ interaction_id: interactionId, reply_text: replyText }),
   })

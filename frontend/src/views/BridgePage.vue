@@ -8,6 +8,10 @@ import {
   replyBridgeLike,
   getBridgeTeachPrompt,
   teachBridgeWord,
+  getBridgeGroupPrompt,
+  replyBridgeGroup,
+  getBridgeOfflinePrompt,
+  replyBridgeOffline,
   getBridgeHistory,
   getBridgeProgress,
 } from '@/api/bridge'
@@ -18,14 +22,18 @@ import type {
   BridgeLikePrompt,
   BridgeTeachPrompt,
   BridgeTeachResult,
+  BridgeGroupPrompt,
+  BridgeGroupResult,
+  BridgeOfflinePrompt,
+  BridgeOfflineResult,
   BridgeHistory,
   BridgeProgress,
 } from '@/api/bridge'
 
-type BridgeStep = 'welcome' | 'greeting' | 'reply' | 'done' | 'like' | 'like-result' | 'teach' | 'teach-result'
+type BridgeStep = 'welcome' | 'greeting' | 'reply' | 'done' | 'like' | 'like-result' | 'teach' | 'teach-result' | 'group' | 'group-result' | 'offline' | 'offline-result'
 
 const step = ref<BridgeStep>('welcome')
-const activeTab = ref<'greet' | 'like' | 'teach'>('greet')
+const activeTab = ref<'greet' | 'like' | 'teach' | 'group' | 'offline'>('greet')
 const loading = ref(false)
 const partner = ref<BridgePartner | null>(null)
 const greeting = ref<BridgeGreeting | null>(null)
@@ -33,6 +41,10 @@ const likePrompt = ref<BridgeLikePrompt | null>(null)
 const teachPrompt = ref<BridgeTeachPrompt | null>(null)
 const replyResult = ref<BridgeReply | null>(null)
 const teachResult = ref<BridgeTeachResult | null>(null)
+const groupPrompt = ref<BridgeGroupPrompt | null>(null)
+const groupResult = ref<BridgeGroupResult | null>(null)
+const offlinePrompt = ref<BridgeOfflinePrompt | null>(null)
+const offlineResult = ref<BridgeOfflineResult | null>(null)
 const history = ref<BridgeHistory[]>([])
 const progress = ref<BridgeProgress | null>(null)
 
@@ -46,6 +58,10 @@ const likeReply = ref('')
 const teachWord = ref('')
 const teachMeaning = ref('')
 const teachExample = ref('')
+// Lv.4
+const groupReplyText = ref('')
+// Lv.5
+const offlineReplyText = ref('')
 
 const currentLevel = computed(() => progress.value?.current_level ?? 0)
 const levels = computed(() => progress.value?.levels ?? [])
@@ -64,6 +80,8 @@ onMounted(async () => {
     if (h.length > 0) step.value = 'done'
     if (pr.current_level >= 2) activeTab.value = 'like'
     if (pr.current_level >= 3) activeTab.value = 'teach'
+    if (pr.current_level >= 4) activeTab.value = 'group'
+    if (pr.current_level >= 5) activeTab.value = 'offline'
   } catch (e) {
     console.error(e)
   } finally {
@@ -199,6 +217,88 @@ async function newTeach() {
   await startTeach()
 }
 
+// ── Lv.4 群聊桥 ──
+
+async function startGroup() {
+  loading.value = true
+  try {
+    const p = await getBridgeGroupPrompt()
+    groupPrompt.value = p
+    step.value = 'group'
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function sendGroupReply() {
+  if (!groupReplyText.value.trim() || !groupPrompt.value) return
+  replyError.value = ''
+  replying.value = true
+  try {
+    const result = await replyBridgeGroup(groupPrompt.value.interaction_id, groupReplyText.value)
+    groupResult.value = result
+    step.value = 'group-result'
+    groupReplyText.value = ''
+    const [h, pr] = await Promise.all([getBridgeHistory(), getBridgeProgress()])
+    history.value = h
+    progress.value = pr
+  } catch (e: any) {
+    replyError.value = e.message || '发送失败'
+  } finally {
+    replying.value = false
+  }
+}
+
+async function newGroup() {
+  groupPrompt.value = null
+  groupResult.value = null
+  step.value = 'welcome'
+  await startGroup()
+}
+
+// ── Lv.5 线下桥 ──
+
+async function startOffline() {
+  loading.value = true
+  try {
+    const p = await getBridgeOfflinePrompt()
+    offlinePrompt.value = p
+    step.value = 'offline'
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function sendOfflineReply() {
+  if (!offlineReplyText.value.trim() || !offlinePrompt.value) return
+  replyError.value = ''
+  replying.value = true
+  try {
+    const result = await replyBridgeOffline(offlinePrompt.value.interaction_id, offlineReplyText.value)
+    offlineResult.value = result
+    step.value = 'offline-result'
+    offlineReplyText.value = ''
+    const [h, pr] = await Promise.all([getBridgeHistory(), getBridgeProgress()])
+    history.value = h
+    progress.value = pr
+  } catch (e: any) {
+    replyError.value = e.message || '发送失败'
+  } finally {
+    replying.value = false
+  }
+}
+
+async function newOffline() {
+  offlinePrompt.value = null
+  offlineResult.value = null
+  step.value = 'welcome'
+  await startOffline()
+}
+
 function goBackToHistory() {
   step.value = 'done'
 }
@@ -257,6 +357,16 @@ function goBackToHistory() {
           <span class="bt-label">Lv.3 教梗 · Teach</span>
           <span class="bt-status" :class="{ done: levels[2]?.done }">{{ levels[2]?.unlocked ? (levels[2]?.done ? '✅' : '🔓') : '🔒' }}</span>
         </button>
+        <button class="bt-tab" :class="{ active: activeTab === 'group' }" @click="activeTab = 'group'">
+          <span class="bt-emoji">👥</span>
+          <span class="bt-label">Lv.4 群聊 · Group</span>
+          <span class="bt-status" :class="{ done: levels[3]?.done }">{{ levels[3]?.unlocked ? (levels[3]?.done ? '✅' : '🔓') : '🔒' }}</span>
+        </button>
+        <button class="bt-tab" :class="{ active: activeTab === 'offline' }" @click="activeTab = 'offline'">
+          <span class="bt-emoji">🏪</span>
+          <span class="bt-label">Lv.5 线下 · Offline</span>
+          <span class="bt-status" :class="{ done: levels[4]?.done }">{{ levels[4]?.unlocked ? (levels[4]?.done ? '✅' : '🔓') : '🔒' }}</span>
+        </button>
       </div>
 
       <template v-if="activeTab === 'greet'">
@@ -288,6 +398,28 @@ function goBackToHistory() {
           <p class="start-desc" v-else>语伴想学一个你会的词！<br/>教 TA 一个地道的网络用语吧 😎</p>
           <p class="start-desc-en" v-if="levels[2]?.unlocked">Your partner wants to learn a cool word from you!</p>
           <button class="btn btn-primary" :disabled="!levels[2]?.unlocked" @click="startTeach">📖 开始教梗 · Teach</button>
+        </div>
+      </template>
+
+      <template v-if="activeTab === 'group'">
+        <div class="bridge-start card">
+          <div class="start-icon">👥</div>
+          <h2 class="start-title">群聊 · Group · Lv.4</h2>
+          <p class="start-desc" v-if="!levels[3]?.unlocked">需要完成至少 10 次互动才能解锁群聊桥</p>
+          <p class="start-desc" v-else>你的语伴把你拉进了一个群聊！<br/>看看大家在聊什么，参与进去吧 🗣️</p>
+          <p class="start-desc-en" v-if="levels[3]?.unlocked">Your partner added you to a group chat! Join the conversation!</p>
+          <button class="btn btn-primary" :disabled="!levels[3]?.unlocked" @click="startGroup">👥 进入群聊 · Join Group</button>
+        </div>
+      </template>
+
+      <template v-if="activeTab === 'offline'">
+        <div class="bridge-start card">
+          <div class="start-icon">🏪</div>
+          <h2 class="start-title">线下 · Offline · Lv.5</h2>
+          <p class="start-desc" v-if="!levels[4]?.unlocked">需要完成至少 15 次互动才能解锁线下桥</p>
+          <p class="start-desc" v-else>模拟一个真实场景！<br/>咖啡店、机场、便利店……用目标语言应对吧 💪</p>
+          <p class="start-desc-en" v-if="levels[4]?.unlocked">Real-life scenarios! Coffee shop, airport, convenience store… handle it!</p>
+          <button class="btn btn-primary" :disabled="!levels[4]?.unlocked" @click="startOffline">🏪 开始场景 · Start Scene</button>
         </div>
       </template>
     </template>
@@ -410,6 +542,107 @@ function goBackToHistory() {
       </div>
     </template>
 
+    <!-- Lv.4 群聊桥 -->
+    <template v-if="step === 'group' && groupPrompt">
+      <div class="greeting-card card">
+        <div class="greeting-header">
+          <span class="greeting-from">👥 {{ groupPrompt.scene }}</span>
+          <span class="greeting-context">{{ groupPrompt.context }}</span>
+        </div>
+        <div class="group-members">
+          <span v-for="m in groupPrompt.members" :key="m.name" class="group-member-tag">{{ m.name }}</span>
+        </div>
+        <div class="group-chat">
+          <div v-for="msg in groupPrompt.initial_messages" :key="msg.from + msg.text" class="group-msg">
+            <span class="group-msg-from">{{ msg.from }}:</span>
+            <span class="group-msg-text">{{ msg.text }}</span>
+          </div>
+          <div class="group-msg group-msg-you">
+            <span class="group-msg-from">你 · You:</span>
+            <span class="group-msg-text group-msg-text-you" v-if="groupReplyText">{{ groupReplyText }}</span>
+            <span class="group-msg-text group-msg-text-placeholder" v-else>输入你的发言...</span>
+          </div>
+        </div>
+        <div class="reply-section">
+          <label class="reply-label">💬 你的发言 · Your Message</label>
+          <textarea v-model="groupReplyText" class="reply-input" rows="2" placeholder="用目标语言在群里说点什么吧..." :disabled="replying"></textarea>
+          <p v-if="replyError" class="reply-error">{{ replyError }}</p>
+          <button class="btn btn-primary" :disabled="!groupReplyText.trim() || replying" @click="sendGroupReply">{{ replying ? '发送中...' : '📤 发送到群里 · Send to Group' }}</button>
+        </div>
+      </div>
+    </template>
+
+    <!-- Lv.4 群聊结果 -->
+    <template v-if="step === 'group-result' && groupResult">
+      <div class="reply-result card">
+        <div class="result-badge">👥 群聊已回复 · Group Replied!</div>
+        <div class="result-section">
+          <span class="result-label">你的发言 · Your Message</span>
+          <div class="result-bubble">{{ groupResult.your_reply }}</div>
+        </div>
+        <div class="result-section">
+          <span class="result-label">💬 群友回复 · Group Replies</span>
+          <div class="group-chat">
+            <div v-for="r in groupResult.group_replies" :key="r.from + r.text" class="group-msg">
+              <span class="group-msg-from">{{ r.from }}:</span>
+              <span class="group-msg-text">{{ r.text }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="result-xp">💎 +{{ groupResult.xp_earned }} XP</div>
+        <div class="result-actions">
+          <button class="btn btn-outline" @click="goBackToHistory">📜 查看历史 · History</button>
+          <button class="btn btn-primary" @click="newGroup">🔄 换个群聊 · Another Group</button>
+        </div>
+      </div>
+    </template>
+
+    <!-- Lv.5 线下桥 -->
+    <template v-if="step === 'offline' && offlinePrompt">
+      <div class="greeting-card card">
+        <div class="greeting-header">
+          <span class="greeting-from">🏪 {{ offlinePrompt.scene }}</span>
+          <span class="greeting-context">{{ offlinePrompt.context }}</span>
+        </div>
+        <div class="offline-npc">
+          <span class="offline-npc-avatar">{{ offlinePrompt.npc.role === '咖啡师' || offlinePrompt.npc.role === 'Barista' ? '☕' : '👤' }}</span>
+          <div class="offline-npc-info">
+            <span class="offline-npc-name">{{ offlinePrompt.npc.name }}</span>
+            <span class="offline-npc-role">{{ offlinePrompt.npc.role }}</span>
+          </div>
+        </div>
+        <div class="greeting-bubble">
+          <p class="greeting-text">{{ offlinePrompt.initial_message }}</p>
+        </div>
+        <div class="reply-section">
+          <label class="reply-label">💬 你的回答 · Your Response</label>
+          <textarea v-model="offlineReplyText" class="reply-input" rows="3" placeholder="用目标语言回应这个场景..." :disabled="replying"></textarea>
+          <p v-if="replyError" class="reply-error">{{ replyError }}</p>
+          <button class="btn btn-primary" :disabled="!offlineReplyText.trim() || replying" @click="sendOfflineReply">{{ replying ? '发送中...' : '📤 回应 · Respond' }}</button>
+        </div>
+      </div>
+    </template>
+
+    <!-- Lv.5 线下桥结果 -->
+    <template v-if="step === 'offline-result' && offlineResult">
+      <div class="reply-result card">
+        <div class="result-badge">🎭 场景对话完成 · Scene Complete!</div>
+        <div class="result-section">
+          <span class="result-label">你的回答 · Your Response</span>
+          <div class="result-bubble">{{ offlineResult.your_reply }}</div>
+        </div>
+        <div class="result-section">
+          <span class="result-label">🎭 NPC 回复 · NPC Reply</span>
+          <div class="result-bubble partner" style="white-space:pre-line">{{ offlineResult.full_reply }}</div>
+        </div>
+        <div class="result-xp">💎 +{{ offlineResult.xp_earned }} XP</div>
+        <div class="result-actions">
+          <button class="btn btn-outline" @click="goBackToHistory">📜 查看历史 · History</button>
+          <button class="btn btn-primary" @click="newOffline">🔄 换个场景 · Another Scene</button>
+        </div>
+      </div>
+    </template>
+
     <!-- Lv.3 教梗结果 -->
     <template v-if="step === 'teach-result' && teachResult">
       <div class="reply-result card">
@@ -524,6 +757,20 @@ function goBackToHistory() {
 .bt-status { flex-shrink: 0; font-size: var(--fs-caption); }
 .bt-status.done { color: var(--success); }
 .lv-badge { font-size: var(--fs-small); background: var(--accent-glow); padding: 1px 6px; border-radius: 4px; margin-left: var(--space-xs); color: var(--accent); }
+.group-members { display: flex; gap: var(--space-xs); flex-wrap: wrap; margin-bottom: var(--space-md); }
+.group-member-tag { font-size: var(--fs-small); background: var(--accent-glow); padding: 2px 8px; border-radius: 12px; color: var(--accent); }
+.group-chat { display: flex; flex-direction: column; gap: var(--space-xs); margin-bottom: var(--space-md); background: var(--surface); border-radius: var(--radius-sm); padding: var(--space-md); }
+.group-msg { display: flex; gap: var(--space-xs); align-items: flex-start; }
+.group-msg-from { font-size: var(--fs-small); color: var(--accent); font-weight: var(--fw-medium); white-space: nowrap; }
+.group-msg-text { font-size: var(--fs-caption); color: var(--text-secondary); line-height: 1.5; }
+.group-msg-you { margin-top: var(--space-xs); padding-top: var(--space-xs); border-top: 1px solid rgba(255,255,255,0.06); }
+.group-msg-text-you { color: var(--text-primary); }
+.group-msg-text-placeholder { color: var(--text-tertiary); font-style: italic; }
+.offline-npc { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
+.offline-npc-avatar { font-size: 1.5rem; }
+.offline-npc-info { display: flex; flex-direction: column; gap: 2px; }
+.offline-npc-name { font-size: var(--fs-body); font-weight: var(--fw-medium); color: var(--text-primary); }
+.offline-npc-role { font-size: var(--fs-small); color: var(--text-tertiary); }
 .teach-section { display: flex; flex-direction: column; gap: var(--space-md); }
 .teach-input { width: 100%; background: var(--surface); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: var(--space-sm) var(--space-md); color: var(--text-primary); font-size: var(--fs-body); font-family: inherit; transition: border-color var(--duration-normal); }
 .teach-input:focus { outline: none; border-color: var(--accent); }
