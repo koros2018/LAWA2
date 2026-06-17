@@ -85,7 +85,10 @@ class PhotoEngine:
         with open(save_path, "wb") as f:
             f.write(file_bytes)
 
-        logger.info(f"📸 图片已保存: {save_path} ({len(file_bytes)} bytes)")
+        # 生成缩略图
+        thumbnail_path = self._generate_thumbnail(save_path, file_id, ext)
+
+        logger.info(f"📸 图片已保存: {save_path} ({len(file_bytes)} bytes) 缩略图: {thumbnail_path}")
 
         # 3. AI 理解（中英双语描述 + 关键词 + 场景）
         description_zh, description_en, keywords, scene_tags = await self._ai_understand(file_bytes, filename)
@@ -94,6 +97,7 @@ class PhotoEngine:
         photo = PhotoUnderstanding(
             user_id=user_id,
             image_path=str(save_path),
+            thumbnail_path=str(thumbnail_path) if thumbnail_path else None,
             original_filename=filename,
             file_size=len(file_bytes),
             mime_type=mime_type,
@@ -109,6 +113,30 @@ class PhotoEngine:
         logger.info(f"📸 AI理解完成: {description_zh[:60]}... (场景: {scene_tags})")
 
         return self._photo_to_dict(photo)
+
+    def _generate_thumbnail(self, source_path: Path, file_id: str, ext: str) -> Optional[Path]:
+        """生成缩略图 (200px宽, 保持比例)"""
+        try:
+            from PIL import Image
+            thumb_dir = THUMBNAIL_DIR
+            thumb_dir.mkdir(parents=True, exist_ok=True)
+            thumb_path = thumb_dir / f"{file_id}{ext}"
+            if not source_path.exists():
+                return None
+            img = Image.open(source_path)
+            w, h = img.size
+            if w > 200:
+                new_h = int(h * 200 / w)
+                img = img.resize((200, new_h), Image.LANCZOS)
+            img.save(thumb_path, quality=75)
+            logger.info(f"🖼️ 缩略图已生成: {thumb_path}")
+            return thumb_path
+        except ImportError:
+            logger.warning("Pillow 未安装，跳过缩略图生成")
+            return None
+        except Exception as e:
+            logger.warning(f"缩略图生成失败: {e}")
+            return None
 
     async def _ai_understand(
         self,
@@ -358,6 +386,7 @@ class PhotoEngine:
             "ai_description_en": photo.ai_description_en,
             "extracted_words": photo.extracted_words or [],
             "scene_tags": photo.scene_tags or [],
+            "thumbnail_path": photo.thumbnail_path,
             "chat_count": photo.chat_count or 0,
             "created_at": photo.created_at.isoformat(),
         }

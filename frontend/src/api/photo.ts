@@ -40,6 +40,11 @@ export function getPhotoImageUrl(photoId: string): string {
   return `${BASE}/${photoId}/image?user_id=${uid}`
 }
 
+export function getPhotoThumbnailUrl(photoId: string): string {
+  const uid = getUserId()
+  return `${BASE}/${photoId}/thumbnail?user_id=${uid}`
+}
+
 export async function uploadPhoto(file: File, userId: string): Promise<PhotoData> {
   const formData = new FormData()
   formData.append('file', file)

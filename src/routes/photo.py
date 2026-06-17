@@ -114,6 +114,28 @@ async def get_photo_history(
     return {"status": "ok", "data": photos}
 
 
+@router.get("/{photo_id}/thumbnail")
+async def get_photo_thumbnail(
+    photo_id: str,
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """获取缩略图"""
+    result = await photo_engine.get_photo_detail(photo_id=photo_id, user_id=user_id, db=db)
+    if not result:
+        raise HTTPException(status_code=404, detail="图片不存在")
+    
+    thumb_path = result.get("thumbnail_path", "")
+    if not thumb_path or not os.path.exists(thumb_path):
+        # 无缩略图则返回原图
+        image_path = result.get("image_path", "")
+        if image_path and os.path.exists(image_path):
+            return FileResponse(image_path)
+        raise HTTPException(status_code=404, detail="图片文件不存在")
+    
+    return FileResponse(thumb_path)
+
+
 @router.get("/{photo_id}/image")
 async def get_photo_image(
     photo_id: str,

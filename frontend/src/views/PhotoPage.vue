@@ -8,6 +8,7 @@ import {
   chatAboutPhoto,
   getPhotoChats,
   getPhotoImageUrl,
+  getPhotoThumbnailUrl,
   type PhotoData,
   type PhotoChat,
   type WordItem,
@@ -237,7 +238,9 @@ onMounted(() => { loadHistory() })
         <div class="gallery-grid">
           <div v-for="photo in photos" :key="photo.id" class="gallery-item"
             :class="{ active: currentPhoto?.id === photo.id }" @click="selectPhoto(photo)">
-            <div class="gallery-thumb-placeholder">📸</div>
+            <img v-if="photo.image_path" :src="getPhotoThumbnailUrl(photo.id)" class="gallery-thumb"
+              @error="$event.target.style.display='none'" />
+            <div v-else class="gallery-thumb-placeholder">📸</div>
             <div class="gallery-info">
               <span class="gallery-filename">{{ photo.original_filename }}</span>
               <span class="gallery-meta">{{ photo.scene_tags?.join(', ') }}</span>
@@ -437,7 +440,8 @@ onMounted(() => { loadHistory() })
 }
 .gallery-item:hover { background: rgba(255,255,255,0.04); }
 .gallery-item.active { background: rgba(167, 139, 250, 0.12); }
-.gallery-thumb-placeholder { font-size: 1.5rem; }
+.gallery-thumb-placeholder { font-size: 1.5rem; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; }
+.gallery-thumb { width: 2rem; height: 2rem; object-fit: cover; border-radius: 0.4rem; flex-shrink: 0; }
 .gallery-info { display: flex; flex-direction: column; gap: 0.1rem; }
 .gallery-filename { font-size: 0.85rem; color: var(--text-primary, #eee); }
 .gallery-meta { font-size: 0.7rem; color: var(--text-muted, #888); }
