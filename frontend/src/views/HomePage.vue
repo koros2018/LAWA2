@@ -43,9 +43,9 @@ async function quickAction(code: string) {
 }
 
 const quickActions = [
-  { code: 'read_one_post', label: '读一条', icon: '📰' },
-  { code: 'look_up_one', label: '查个词', icon: '🔍' },
-  { code: 'say_one_thing', label: '跟读', icon: '🎤' },
+  { code: 'read_one_post', label: '读一条 · Read', icon: '📰' },
+  { code: 'look_up_one', label: '查个词 · Look Up', icon: '🔍' },
+  { code: 'say_one_thing', label: '跟读 · Repeat', icon: '🎤' },
 ]
 </script>
 
@@ -57,14 +57,15 @@ const quickActions = [
     <section class="hero-section">
       <div class="hero-label" v-if="!loading">
         <span class="badge" v-if="config">
-          🔥 连续 {{ config.current_streak }} 天
+          🔥 连续 {{ config.current_streak }} 天 · {{ config.current_streak }}-day streak · {{ config.current_streak }}-day streak
         </span>
       </div>
-      <h1 class="hero-title">你的语言<br/>正在生长</h1>
-      <p class="hero-subtitle-en">Your Language · Growing Naturally</p>
+      <h1 class="hero-title">你的语言正在生长<br/><span class="hero-subtitle-en">Your Language, Growing Naturally</span></h1>
       <p class="hero-subtitle">
         语言能力不是练出来的，是养出来的。<br/>
-        每一天的信息流，都是浇灌。
+        每一天的信息流，都是浇灌。<br/>
+        Your language grows with daily nourishment.<br/>
+        <span class="hero-subtitle-en">Language grows with daily nourishment.</span>
       </p>
     </section>
 
@@ -73,15 +74,15 @@ const quickActions = [
       <template v-if="summary">
         <div class="stat-card">
           <span class="stat-value">{{ summary.total_xp }}</span>
-          <span class="stat-label">总 XP</span>
+          <span class="stat-label">总 XP · Total XP</span>
         </div>
         <div class="stat-card">
           <span class="stat-value">{{ summary.total_habits }}</span>
-          <span class="stat-label">今日行为</span>
+          <span class="stat-label">今日行为 · Habits</span>
         </div>
         <div class="stat-card">
           <span class="stat-value">{{ summary.streak_days }}</span>
-          <span class="stat-label">连续天数</span>
+          <span class="stat-label">连续天数 · Streak</span>
         </div>
       </template>
       <div v-else class="stat-card" v-for="i in 3" :key="i">
@@ -109,7 +110,7 @@ const quickActions = [
       <Transition name="fade">
         <div v-if="actionResult" class="action-feedback card">
           <span class="feedback-icon">✨</span>
-          <span>+{{ actionResult.xp_earned }} XP</span>
+          <span>+{{ actionResult.xp_earned }} XP 经验 · Experience</span>
           <span v-if="actionResult.reward" class="reward-text">
             🎁 {{ actionResult.reward.reward_value?.name || '奖励' }}
           </span>
@@ -128,12 +129,12 @@ const quickActions = [
         </div>
         <p class="feed-text">{{ feed.text }}</p>
         <div class="feed-hints" v-if="feed.vocab_hints?.length">
-          <span class="hint-label">生词</span>
+          <span class="hint-label">生词 · Vocab</span>
           <span class="hint-word" v-for="w in feed.vocab_hints" :key="w">{{ w }}</span>
         </div>
       </div>
       <router-link to="/feed" class="btn btn-ghost feed-more">
-        查看更多 →
+        查看更多 · See More →
       </router-link>
     </section>
   </div>

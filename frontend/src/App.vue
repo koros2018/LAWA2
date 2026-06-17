@@ -89,6 +89,7 @@ function isActive(name: string) {
       >
         <span class="sub-nav-icon">{{ item.icon }}</span>
         <span class="sub-nav-label">{{ item.label }}</span>
+        <span class="sub-nav-label-en">{{ item.labelEn }}</span>
       </button>
     </nav>
   </div>
@@ -198,5 +199,11 @@ function isActive(name: string) {
 .sub-nav-label {
   font-size: 0.55rem;
   line-height: 1;
+}
+
+.sub-nav-label-en {
+  font-size: 0.5rem;
+  line-height: 1;
+  opacity: 0.6;
 }
 </style>

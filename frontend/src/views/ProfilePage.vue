@@ -16,10 +16,10 @@ const user = computed(() => session.user)
 const healthLabel = computed(() => {
   if (!health.value) return '—'
   const s = health.value.health_score
-  if (s >= 85) return '🌿 欣欣向荣'
-  if (s >= 60) return '🌱 稳步成长'
-  if (s >= 30) return '💧 需要浇灌'
-  return '🌰 刚刚播种'
+  if (s >= 85) return '🌿 欣欣向荣 · Flourishing'
+  if (s >= 60) return '🌱 稳步成长 · Growing Steadily'
+  if (s >= 30) return '💧 需要浇灌 · Needs Watering'
+  return '🌰 刚刚播种 · Just Planted'
 })
 
 const trendIcon = computed(() => {
@@ -63,7 +63,7 @@ function handleLogout() {
       </div>
       <h1 class="hero-title profile-title">{{ user?.displayName || '我的' }} · Profile</h1>
       <p class="hero-subtitle" v-if="user">
-        {{ user.nativeLang === 'zh' ? '中文 → 英文' : 'English → 中文' }}
+        {{ user.nativeLang === 'zh' ? '中文 → 英文 · Chinese → English' : 'English → 中文 · English → Chinese' }}
       </p>
     </section>
 
@@ -76,7 +76,7 @@ function handleLogout() {
         </div>
         <div class="card stat-block">
           <span class="stat-num">{{ summary.total_xp }}</span>
-          <span class="stat-lbl">总 XP</span>
+          <span class="stat-lbl">总 XP · Total XP</span>
         </div>
         <div class="card stat-block">
           <span class="stat-num">{{ summary.streak_days }}</span>
@@ -85,7 +85,7 @@ function handleLogout() {
         <div class="card stat-block">
           <span class="stat-num" v-if="config">{{ config.longest_streak }}</span>
           <span class="stat-num" v-else>—</span>
-          <span class="stat-lbl">最长记录</span>
+          <span class="stat-lbl">最长记录 · Best Streak</span>
         </div>
       </div>
       <div v-else-if="loading" class="stat-grid grid-2-mobile">
@@ -118,10 +118,10 @@ function handleLogout() {
         </div>
         <div class="insight-dims">
           <div class="id-row" v-for="d in [
-            { key: 'consistency' as const, label: '持续度', color: '#7BC67E' },
-            { key: 'depth' as const, label: '深入度', color: '#4FC3F7' },
-            { key: 'breadth' as const, label: '广度', color: '#BA68C8' },
-            { key: 'recovery' as const, label: '恢复力', color: '#FFB74D' },
+            { key: 'consistency' as const, label: '持续度 · Consistency', color: '#7BC67E' },
+            { key: 'depth' as const, label: '深入度 · Depth', color: '#4FC3F7' },
+            { key: 'breadth' as const, label: '广度 · Breadth', color: '#BA68C8' },
+            { key: 'recovery' as const, label: '恢复力 · Recovery', color: '#FFB74D' },
           ]" :key="d.key">
             <span class="id-label">{{ d.label }}</span>
             <div class="id-bar-bg">
@@ -171,7 +171,7 @@ function handleLogout() {
 
       <div class="pref-row">
         <span class="pref-label">信息源 · Sources</span>
-        <span class="pref-value text-ellipsis">{{ config.info_source_prefs?.join(', ') || '默认' }}</span>
+        <span class="pref-value text-ellipsis">{{ config.info_source_prefs?.join(', ') || '默认 · Default' }}</span>
       </div>
       <div class="pref-row">
         <span class="pref-label">推送时段 · Schedule</span>
@@ -180,7 +180,7 @@ function handleLogout() {
       <div class="pref-row">
         <span class="pref-label">推送 · Notifications</span>
         <span class="pref-value" :class="config.feed_enabled ? 'text-on' : 'text-off'">
-          {{ config.feed_enabled ? '已开启' : '已关闭' }}
+          {{ config.feed_enabled ? '已开启 · On' : '已关闭 · Off' }}
         </span>
       </div>
       <div class="pref-row">
@@ -194,9 +194,10 @@ function handleLogout() {
       <h2 class="section-title">关于 · About</h2>
       <div class="divider"></div>
       <p class="about-text">
-        LAWA2 — 养成式语言习惯引擎<br/>
-        基于《Hooked》模型的习惯养成系统<br/>
-        语言能力不是练出来的，是养出来的。
+        LAWA2 — 养成式语言习惯引擎 · Habit-based Language Engine<br/>
+        基于《Hooked》模型的习惯养成系统 · Built on the Hooked Model<br/>
+        语言能力不是练出来的，是养出来的。<br/>
+        Language isn't practiced — it's cultivated.
       </p>
       <div class="about-version">v2.0.0</div>
 

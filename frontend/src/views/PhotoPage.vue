@@ -122,7 +122,7 @@ async function sendMessage() {
         })
       }
     } catch (e) {
-      freeChats.value.push({ role: 'assistant', content: '抱歉，回复失败。', content_en: 'Sorry, failed to reply.' })
+      freeChats.value.push({ role: 'assistant', content: '抱歉，回复失败。', content_en: 'Sorry, failed to reply. Please try again.' })
     }
   }
 
@@ -180,10 +180,10 @@ onMounted(() => { loadHistory() })
       <div v-else class="empty-state" @click="fileInput?.click()">
         <span class="empty-icon">📸</span>
         <p class="empty-title">拍照理解 · Photo Understanding</p>
-        <p class="empty-desc">拍一张照片，AI 用中英双语和你聊</p>
+        <p class="empty-desc">拍一张照片，AI 用中英双语和你聊 · Snap a photo, AI chats with you bilingually</p>
         <p class="empty-desc-en">Snap a photo, AI understands and chats bilingually</p>
         <button class="upload-btn" :disabled="uploading">
-          {{ uploading ? 'Uploading... 上传中...' : '📷 选择图片 · Choose Photo' }}
+          {{ uploading ? '上传中 · Uploading...' : '📷 选择图片 · Choose Photo' }}
         </button>
       </div>
       <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="handleFileUpload" />
@@ -191,7 +191,7 @@ onMounted(() => { loadHistory() })
 
     <div v-if="currentPhoto" class="chat-area">
       <div v-if="currentPhoto.extracted_words?.length" class="word-banner">
-        <span class="word-banner-label">✨ 关键词 Key Words</span>
+        <span class="word-banner-label">✨ 关键词 · Key Words</span>
         <button v-for="(word, i) in currentPhoto.extracted_words.slice(0, 4)" :key="i" class="word-pill" @click="showWordDetail(word)">{{ word.word }}</button>
       </div>
 
@@ -216,8 +216,8 @@ onMounted(() => { loadHistory() })
 
     <div v-if="currentPhoto" class="input-area">
       <div class="mode-tabs">
-        <button class="mode-tab" :class="{ active: chatMode === 'photo_chat' }" @click="chatMode = 'photo_chat'">🖼 图片对话</button>
-        <button class="mode-tab" :class="{ active: chatMode === 'free_chat' }" @click="chatMode = 'free_chat'">💬 自由聊天</button>
+        <button class="mode-tab" :class="{ active: chatMode === 'photo_chat' }" @click="chatMode = 'photo_chat'">🖼 图片对话 · Photo Chat</button>
+        <button class="mode-tab" :class="{ active: chatMode === 'free_chat' }" @click="chatMode = 'free_chat'">💬 自由聊天 · Free Chat</button>
       </div>
       <div class="input-row">
         <button class="action-btn" @click="fileInput?.click()" title="Upload / 上传">📷</button>
@@ -248,7 +248,7 @@ onMounted(() => { loadHistory() })
           </div>
           <div v-if="photos.length === 0" class="gallery-empty">
             <p>还没有照片 · No photos yet</p>
-            <p class="gallery-hint">点击 📷 上传第一张</p>
+            <p class="gallery-hint">点击 📷 上传第一张 · Tap 📷 to upload your first photo</p>
           </div>
         </div>
       </div>

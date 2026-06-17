@@ -94,10 +94,10 @@ function switchTab(tab: 'feed' | 'social') {
 
 const categoryLabel = (cat: string) => {
   const labels: Record<string, string> = {
-    net_slang: '🌐 网络用语',
-    life_scene: '🍜 生活场景',
-    group_chat: '💬 群聊回复',
-    meme: '😂 文化梗',
+    net_slang: '🌐 网络用语 · Net Slang',
+    life_scene: '🍜 生活场景 · Daily Life',
+    group_chat: '💬 群聊回复 · Group Chat',
+    meme: '😂 文化梗 · Meme',
   }
   return labels[cat] || cat
 }
@@ -119,8 +119,8 @@ const levelLabel = (lvl: string) => {
     <section class="hero-section feed-hero">
       <div class="bg-glow bg-glow-4"></div>
       <h1 class="hero-title feed-title">信息流 · Feed</h1>
-      <p class="hero-subtitle">你的日常语言养料<br/>读一条，都是浇灌。</p>
-      <p class="hero-subtitle-en">Your daily language nourishment · Every read is watering your garden</p>
+      <p class="hero-subtitle">你的日常语言养料<br/>读一条，都是浇灌。<br/>Your daily language nourishment · Every read is watering your garden</p>
+      <!-- removed, merged into hero-subtitle above -->
     </section>
 
     <!-- Tab toggle -->
@@ -130,7 +130,7 @@ const levelLabel = (lvl: string) => {
         :class="{ active: activeTab === 'feed' }"
         @click="switchTab('feed')"
       >
-        📰 资讯
+        📰 资讯 · Feed
       </button>
       <button
         class="tab-btn"
@@ -168,21 +168,21 @@ const levelLabel = (lvl: string) => {
             @click="handleAction('read_one_post')"
             :disabled="actionBusy"
           >
-            📰 读完
+            📰 读完 · Read
           </button>
           <button
             class="btn btn-outline btn-sm"
             @click="handleAction('say_one_thing')"
             :disabled="actionBusy"
           >
-            🎤 跟读
+            🎤 跟读 · Repeat
           </button>
           <button
             class="btn btn-outline btn-sm"
             @click="handleAction('look_up_one')"
             :disabled="actionBusy"
           >
-            🔍 查词
+            🔍 查词 · Look Up
           </button>
         </div>
 
@@ -190,7 +190,7 @@ const levelLabel = (lvl: string) => {
           <div v-if="actionResult" class="feed-feedback">
             <span class="fb-icon">✨</span>
             <span class="fb-xp">+{{ actionResult.xp_earned }} XP</span>
-            <span class="fb-streak">🔥 {{ actionResult.streak_days }} 天</span>
+            <span class="fb-streak">🔥 {{ actionResult.streak_days }} 天 · {{ actionResult.streak_days }} days</span>
             <span v-if="actionResult.reward" class="fb-reward">
               🎁 {{ actionResult.reward.reward_value?.icon }} {{ actionResult.reward.reward_value?.name }}
             </span>
@@ -200,8 +200,7 @@ const levelLabel = (lvl: string) => {
 
       <div v-else class="empty-state">
         <p class="empty-icon">📡</p>
-        <p>暂无信息流内容</p>
-        <p class="empty-en">No feed content available</p>
+        <p>暂无信息流 · No feed content available</p>
         <button class="btn btn-primary" @click="refreshFeed">刷新 · Refresh</button>
       </div>
     </template>
@@ -248,18 +247,17 @@ const levelLabel = (lvl: string) => {
             @click="levelUp(scene.vocab_id)"
             :disabled="scene?.understanding_level === 'create'"
           >
-            🎯 我学会了
+            🎯 我学会了 · Got it!
           </button>
           <button class="btn btn-outline btn-sm" @click="loadScene">
-            🔄 换一个
+            🔄 换一个 · Next
           </button>
         </div>
       </div>
 
       <div v-else class="empty-state">
         <p class="empty-icon">🗣️</p>
-        <p>加载社交场景</p>
-        <p class="empty-en">Loading social scene</p>
+        <p>加载社交场景<br>Loading social scene</p>
         <button class="btn btn-primary" @click="loadScene">开始预演 · Start Rehearsal</button>
       </div>
     </template>

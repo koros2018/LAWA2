@@ -18,14 +18,14 @@ const step = ref(1) // 1=名字, 2=兴趣+水平
 
 const allInterests = {
   en: [
-    { id: 'tech', label: '科技' },
-    { id: 'news', label: '新闻' },
-    { id: 'culture', label: '文化' },
-    { id: 'life', label: '生活' },
-    { id: 'sports', label: '体育' },
-    { id: 'entertainment', label: '娱乐' },
-    { id: 'business', label: '商业' },
-    { id: 'science', label: '科学' },
+    { id: 'tech', label: '科技 · Tech' },
+    { id: 'news', label: '新闻 · News' },
+    { id: 'culture', label: '文化 · Culture' },
+    { id: 'life', label: '生活 · Life' },
+    { id: 'sports', label: '体育 · Sports' },
+    { id: 'entertainment', label: '娱乐 · Entertainment' },
+    { id: 'business', label: '商业 · Business' },
+    { id: 'science', label: '科学 · Science' },
   ],
   zh: [
     { id: 'daily', label: 'Daily Life' },
@@ -62,7 +62,7 @@ function toggleInterest(id: string) {
 
 function nextStep() {
   if (!displayName.value.trim()) {
-    error.value = '给自己起个名字吧'
+    error.value = '给自己起个名字吧 · Please pick a name'
     return
   }
   error.value = ''
@@ -84,7 +84,7 @@ async function handleSubmit() {
     updateProfile(result)
     router.push('/')
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : '保存失败'
+    error.value = e instanceof Error ? e.message : '保存失败 · Save failed'
   } finally {
     loading.value = false
   }
@@ -110,7 +110,8 @@ async function handleSubmit() {
           <h1 class="step-title">你叫什么名字？<br><span class="step-title-en">What's your name?</span></h1>
           <p class="step-desc">
             语言花园需要一位园丁。<br/>
-            给它一个名字，它就有了主人。
+            给它一个名字，它就有了主人。<br/>
+            Your garden needs a gardener.
           </p>
           <p class="step-desc-en">
             Every garden needs a gardener.<br/>
@@ -145,7 +146,8 @@ async function handleSubmit() {
           <h1 class="step-title">你想学什么？<br><span class="step-title-en">What do you want to learn?</span></h1>
           <p class="step-desc">
             选择你感兴趣的内容，<br/>
-            你的花园就会朝着那个方向生长。
+            你的花园就会朝着那个方向生长。<br/>
+            Your garden grows toward your interests.
           </p>
           <p class="step-desc-en">
             Pick what interests you.<br/>

@@ -103,10 +103,10 @@ onMounted(() => { loadStats(); loadUsers() })
 
     <section v-if="activeTab === 'users'" class="tab-content">
       <div class="search-bar">
-        <input v-model="searchQuery" type="text" class="search-input" placeholder="🔍 搜索用户名/显示名 · Search" @keyup.enter="searchUsers" />
+        <input v-model="searchQuery" type="text" class="search-input" placeholder="🔍 搜索用户名/显示名 · Search Username/Display Name" @keyup.enter="searchUsers" />
         <button class="search-btn" @click="searchUsers">搜索 · Search</button>
       </div>
-      <div class="user-count">共 {{ usersTotal }} 个用户 · Total</div>
+      <div class="user-count">共 {{ usersTotal }} 个用户 · Total: {{ usersTotal }} users</div>
       <div v-if="usersLoading && users.length === 0" class="loading-state"><span class="loading-spinner"></span><span>加载中... Loading...</span></div>
       <div v-else class="user-list">
         <div v-for="user in users" :key="user.id" class="user-card">
@@ -116,12 +116,12 @@ onMounted(() => { loadStats(); loadUsers() })
             <span class="user-status" :class="{ active: user.is_active, inactive: !user.is_active }">{{ user.is_active ? 'Active' : 'Disabled' }}</span>
           </div>
           <div class="user-info">
-            <div class="user-detail"><span class="detail-label">语言 Lang</span><span class="detail-value">{{ user.native_lang }} → {{ user.learn_lang }}</span></div>
-            <div class="user-detail"><span class="detail-label">等级 Level</span><span class="detail-value">{{ user.current_level || '—' }} (习惯 {{ user.habit_level }})</span></div>
-            <div class="user-detail"><span class="detail-label">XP / 连续</span><span class="detail-value">{{ user.growth_xp }} / {{ user.streak_days }}天</span></div>
-            <div class="user-detail"><span class="detail-label">桥梁 Level</span><span class="detail-value">{{ user.bridge_level }}</span></div>
-            <div class="user-detail"><span class="detail-label">兴趣 Interests</span><span class="detail-value text-ellipsis">{{ user.interests?.length ? user.interests.join(', ') : '—' }}</span></div>
-            <div class="user-detail"><span class="detail-label">注册时间</span><span class="detail-value">{{ formatDate(user.created_at) }}</span></div>
+            <div class="user-detail"><span class="detail-label">语言 · Language</span><span class="detail-value">{{ user.native_lang }} → {{ user.learn_lang }}</span></div>
+            <div class="user-detail"><span class="detail-label">等级 · Level</span><span class="detail-value">{{ user.current_level || '—' }} (习惯 · Habit {{ user.habit_level }})</span></div>
+            <div class="user-detail"><span class="detail-label">XP / 连续 · Streak</span><span class="detail-value">{{ user.growth_xp }} / {{ user.streak_days }}天 · {{ user.streak_days }}d</span></div>
+            <div class="user-detail"><span class="detail-label">桥梁 · Bridge Level</span><span class="detail-value">{{ user.bridge_level }}</span></div>
+            <div class="user-detail"><span class="detail-label">兴趣 · Interests</span><span class="detail-value text-ellipsis">{{ user.interests?.length ? user.interests.join(', ') : '—' }}</span></div>
+            <div class="user-detail"><span class="detail-label">注册时间 · Registered</span><span class="detail-value">{{ formatDate(user.created_at) }}</span></div>
           </div>
           <div class="user-actions">
             <button class="toggle-btn" :class="{ danger: user.is_active }" :disabled="togglingId === user.id" @click="toggleUser(user.id)">
@@ -131,7 +131,7 @@ onMounted(() => { loadStats(); loadUsers() })
         </div>
       </div>
       <div v-if="users.length < usersTotal" class="load-more">
-        <button class="btn-ghost" :disabled="usersLoading" @click="loadUsers(true)">{{ usersLoading ? '加载中...' : '加载更多 · Load More' }}</button>
+        <button class="btn-ghost" :disabled="usersLoading" @click="loadUsers(true)">{{ usersLoading ? '加载中... · Loading...' : '加载更多 · Load More' }}</button>
       </div>
     </section>
   </div>

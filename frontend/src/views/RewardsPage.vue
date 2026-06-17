@@ -41,13 +41,13 @@ const defaultIcon: Record<string, string> = {
     <div class="bg-glow bg-glow-1"></div>
 
     <section class="hero-section rewards-hero">
-      <h1 class="hero-title rewards-title">收获</h1>
-      <p class="hero-subtitle">成长的路上，总有意想不到的惊喜。</p>
+      <h1 class="hero-title rewards-title">收获 · Rewards</h1>
+      <p class="hero-subtitle">成长的路上，总有意想不到的惊喜。<br>Unexpected surprises along the way.</p>
     </section>
 
     <!-- 里程碑 -->
     <section class="milestones-section">
-      <h2 class="section-title">里程碑</h2>
+      <h2 class="section-title">里程碑 · Milestones</h2>
       <div class="divider"></div>
 
       <div v-if="loading" class="milestones-grid">
@@ -81,13 +81,13 @@ const defaultIcon: Record<string, string> = {
       </div>
 
       <div v-else class="empty-block">
-        <p>还没有里程碑。开始行动吧！</p>
+        <p>还没有里程碑。开始行动吧！<br>No milestones yet. Start taking action!</p>
       </div>
     </section>
 
     <!-- 最近奖励 -->
     <section class="rewards-section">
-      <h2 class="section-title">最近奖励</h2>
+      <h2 class="section-title">最近奖励 · Recent Rewards</h2>
       <div class="divider"></div>
 
       <div v-if="loading">
@@ -106,7 +106,7 @@ const defaultIcon: Record<string, string> = {
       </div>
 
       <div v-else class="empty-block">
-        <p>还没有收获到奖励。多做一些微行动试试。</p>
+        <p>还没有收获到奖励。多做一些微行动试试。<br>No rewards yet. Try some micro actions!</p>
       </div>
     </section>
   </div>

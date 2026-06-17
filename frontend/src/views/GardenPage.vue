@@ -10,11 +10,11 @@ const loading = ref(true)
 
 const stageOrder = ['seed', 'sprout', 'seedling', 'bloom', 'fruit']
 const stageMeta: Record<string, { label: string; icon: string; color: string }> = {
-  seed:     { label: '种子', icon: '🌰', color: '#8B6C42' },
-  sprout:   { label: '发芽', icon: '🌱', color: '#7BC67E' },
-  seedling: { label: '幼苗', icon: '🌿', color: '#4CAF50' },
-  bloom:    { label: '开花', icon: '🌸', color: '#E8796E' },
-  fruit:    { label: '结果', icon: '🍎', color: '#F44336' },
+  seed:     { label: '种子 · Seed', icon: '🌰', color: '#8B6C42' },
+  sprout:   { label: '发芽 · Sprout', icon: '🌱', color: '#7BC67E' },
+  seedling: { label: '幼苗 · Seedling', icon: '🌿', color: '#4CAF50' },
+  bloom:    { label: '开花 · Bloom', icon: '🌸', color: '#E8796E' },
+  fruit:    { label: '结果 · Fruit', icon: '🍎', color: '#F44336' },
 }
 
 const g = computed(() => garden.value?.garden)
@@ -90,10 +90,10 @@ function animateParticles() {
 const healthLabel = computed(() => {
   if (!health.value) return '—'
   const s = health.value.health_score
-  if (s >= 85) return '🌿 欣欣向荣'
-  if (s >= 60) return '🌱 稳步成长'
-  if (s >= 30) return '💧 需要浇灌'
-  return '🌰 刚刚播种'
+  if (s >= 85) return '🌿 欣欣向荣 · Thriving'
+  if (s >= 60) return '🌱 稳步成长 · Growing Steady'
+  if (s >= 30) return '💧 需要浇灌 · Need Watering'
+  return '🌰 刚刚播种 · Just Planted'
 })
 
 const trendIcon = computed(() => {
@@ -146,44 +146,44 @@ onUnmounted(() => {
 
       <section class="hero-section garden-hero">
         <div class="bg-glow bg-glow-2"></div>
-        <h1 class="hero-title garden-title">🌱 语言花园</h1>
+        <h1 class="hero-title garden-title">🌱 语言花园 · Language Garden</h1>
         <p class="hero-subtitle" v-if="!loading">
-          你种下了 <strong>{{ totalWords }}</strong> 个词，<strong>{{ bloomWords }}</strong> 个已开花结果
+          你种下了 <strong>{{ totalWords }}</strong> 个词，<strong>{{ bloomWords }}</strong> 个已开花结果 · You planted <strong>{{ totalWords }}</strong> words, <strong>{{ bloomWords }}</strong> have bloomed
         </p>
       </section>
 
       <div v-if="report && !loading" class="card report-card">
         <div class="report-header">
           <span class="report-icon">📋</span>
-          <h3 class="report-title">花园周报</h3>
+          <h3 class="report-title">花园周报 · Garden Weekly</h3>
           <span class="report-badge" :class="{ watered: report.watered_today }">
-            {{ report.can_water ? '💧 可浇水' : '☀️ 已浇灌' }}
+            {{ report.can_water ? '💧 可浇水 · Can Water' : '☀️ 已浇灌 · Watered' }}
           </span>
         </div>
         <div class="report-body" v-html="report.report.replace(/\n\n/g, '<br><br>')"></div>
         <div class="report-metrics">
           <div class="rm-item">
             <span class="rm-value">{{ report.week_actions }}</span>
-            <span class="rm-label">微行为</span>
+            <span class="rm-label">微行为 · Micro Actions</span>
           </div>
           <div class="rm-item">
             <span class="rm-value">+{{ report.week_vocab }}</span>
-            <span class="rm-label">新词</span>
+            <span class="rm-label">新词 · New Words</span>
           </div>
           <div class="rm-item">
             <span class="rm-value">🔥 {{ report.streak }}</span>
-            <span class="rm-label">连续天</span>
+            <span class="rm-label">连续 · Streak</span>
           </div>
           <div class="rm-item">
             <span class="rm-value">{{ report.level }}</span>
-            <span class="rm-label">等级</span>
+            <span class="rm-label">等级 · Level</span>
           </div>
         </div>
       </div>
 
       <div v-if="health && !loading" class="card health-card">
         <div class="health-header">
-          <span class="health-title">🫀 习惯健康度</span>
+          <span class="health-title">🫀 习惯健康度 · Habit Health</span>
           <span class="health-score">{{ health.health_score }}/100</span>
         </div>
         <div class="health-bar-wrapper">
@@ -198,10 +198,10 @@ onUnmounted(() => {
 
         <div class="health-dims">
           <div class="hd-row" v-for="d in [
-            { key: 'consistency' as const, label: '持续度', color: '#7BC67E' },
-            { key: 'depth' as const, label: '深入度', color: '#4FC3F7' },
-            { key: 'breadth' as const, label: '广度', color: '#BA68C8' },
-            { key: 'recovery' as const, label: '恢复力', color: '#FFB74D' },
+            { key: 'consistency' as const, label: '持续度 · Consistency', color: '#7BC67E' },
+            { key: 'depth' as const, label: '深入度 · Depth', color: '#4FC3F7' },
+            { key: 'breadth' as const, label: '广度 · Breadth', color: '#BA68C8' },
+            { key: 'recovery' as const, label: '恢复力 · Recovery', color: '#FFB74D' },
           ]" :key="d.key">
             <span class="hd-label">{{ d.label }}</span>
             <div class="hd-bar-bg">
@@ -219,10 +219,10 @@ onUnmounted(() => {
       <div v-if="g" class="garden-overview card">
         <div class="overview-row">
           <div v-for="item in [
-            { value: g.total_vocab, label: '词汇量' },
-            { value: g.habit_level, label: '等级' },
-            { value: g.total_milestones, label: '里程碑' },
-            { value: g.total_xp, label: '总 XP' },
+            { value: g.total_vocab, label: '词汇量 · Vocabulary' },
+            { value: g.habit_level, label: '等级 · Level' },
+            { value: g.total_milestones, label: '里程碑 · Milestones' },
+            { value: g.total_xp, label: '总 XP · Total XP' },
           ]" :key="item.label" class="overview-item">
             <span class="ov-value">{{ item.value }}</span>
             <span class="ov-label">{{ item.label }}</span>
@@ -250,7 +250,7 @@ onUnmounted(() => {
       </div>
 
       <section v-if="garden?.new_milestones?.length" class="new-milestones">
-        <h2 class="section-title">🎉 新里程碑</h2>
+        <h2 class="section-title">🎉 新里程碑 · New Milestones</h2>
         <div class="divider"></div>
         <div v-for="m in garden.new_milestones" :key="m.code" class="card milestone-card">
           <span class="ms-icon">🏆</span>
@@ -260,8 +260,8 @@ onUnmounted(() => {
 
       <div v-if="!totalWords && !loading" class="empty-state">
         <p class="empty-icon">🌱</p>
-        <p>开始阅读信息流，词汇会自动生长</p>
-        <router-link to="/feed" class="btn btn-primary">去信息流</router-link>
+        <p>开始阅读信息流，词汇会自动生长 · Start reading the feed, words will grow automatically</p>
+        <router-link to="/feed" class="btn btn-primary">去信息流 · Go to Feed</router-link>
       </div>
     </div>
   </div>
