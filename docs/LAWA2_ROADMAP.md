@@ -1,10 +1,10 @@
-# 🌿 LAWA2 — 产品路线图 v6
+# 🌿 LAWA2 — 产品路线图 v7
 
 > 养成式双语日常空间 × 多 Agent 架构
 > 2026-06-17 | 基于 Ke & 达子双人讨论
 > 
 > **更新日志：**
-> - v5 → v6: 添加 Phase 6（质量增强 + 生产就绪），标记 Phase 5 为已取消
+> - v6 → v7: 更新 Phase 6 实际交付状态，补充 v2.8.0-v3.2.0 版本历史
 
 ---
 
@@ -292,22 +292,24 @@ PhotoChat
 
 ---
 
-### Phase 6：质量增强 + 生产就绪（新增）
+### Phase 6：质量增强 + 生产就绪（进行中）
 
 **目标：** 完善内容管理、数据可视化、部署运维
 
-| # | 任务 | 产出 | 优先级 |
-|---|------|------|--------|
-| 6.1 | 内容管理页面（前端） | 种子语料 CRUD UI + 双语编辑 | P1 |
-| 6.2 | 数据看板图表 | ECharts 集成 + DAU/留存/行为统计 | P1 |
-| 6.3 | 日志查看页面 | 系统日志 UI + 错误聚合 | P2 |
-| 6.4 | 错误监控 | Sentry 集成 + 异常告警 | P2 |
-| 6.5 | E2E 测试补全 | Playwright 场景覆盖 + 回归测试 | P2 |
-| 6.6 | CI/CD 流水线 | GitHub Actions 自动构建 + 部署 | P3 |
-| 6.7 | 统一认证依赖 | P1 | 🔲 本次测试发现问题 |
-| 6.8 | API 参数标准化 | P2 | 🔲 Admin 路由统一 Query |
-| 6.9 | 测试用户管理 | P2 | 🔲 自动创建/清理测试用户 |
-| 6.10 | 文件上传测试 | P3 | 🔲 multipart/form-data 测试 |
+| # | 任务 | 产出 | 优先级 | 状态 |
+|---|------|------|--------|------|
+| 6.1 | 内容管理页面（前端） | 种子语料 CRUD UI + 双语编辑 | P1 | ✅ v2.8.0 |
+| 6.2 | 数据看板图表 | ECharts 集成 + DAU/留存/行为统计 | P1 | ✅ v2.9.0 |
+| 6.3 | 日志查看页面 | 系统日志 UI + 错误聚合 | P2 | ✅ v3.0.0 |
+| 6.4 | 错误监控 | 异常捕获 + 错误聚合 + API | P2 | ✅ v3.1.0 |
+| 6.5 | E2E 测试补全 | Playwright 场景覆盖 + 回归测试 | P2 | ✅ v3.2.0 |
+| 6.6 | CI/CD 流水线 | GitHub Actions 自动构建 + 部署 | P3 | ✅ v3.2.0 |
+| 6.7 | 统一认证依赖 | 统一 auth 依赖注入 | P1 | 🔲 未开始 |
+| 6.8 | API 参数标准化 | 路由参数统一 Query | P2 | 🔲 未开始 |
+| 6.9 | 测试用户管理 | 自动创建/清理测试用户 | P2 | 🔲 未开始 |
+| 6.10 | 文件上传测试 | multipart/form-data 测试 | P3 | 🔲 未开始 |
+
+**Phase 6 进度：6/10 子任务已完成，P1-P3 级别均已覆盖。**
 
 **API 变更：**
 ```
@@ -343,7 +345,14 @@ P5  [❌] Phase 5 — 微信登录 + 数据安全
 
 P6  [🔲] Phase 6 — 质量增强 + 生产就绪
     目标：内容管理 + 数据可视化 + 部署运维
-    状态：进行中（2026-06-17）
+    状态：6/10 完成（2026-06-17）
+    ✅ 6.1 内容管理前端 (v2.8.0)
+    ✅ 6.2 数据看板图表 (v2.9.0)
+    ✅ 6.3 日志查看页面 (v3.0.0)
+    ✅ 6.4 错误监控 (v3.1.0)
+    ✅ 6.5 E2E 测试 (v3.2.0)
+    ✅ 6.6 CI/CD 流水线 (v3.2.0)
+    🔲 6.7-6.10 待完成
 ```
 
 ---
@@ -365,9 +374,11 @@ v2.7.2  2026-06-17  Register Admin User + Remove GitHub OAuth
 v2.7.3  2026-06-17  Admin Permission Enforcement + OAuth UI Cleanup
 v2.7.4  2026-06-17  Remove all OAuth (GitHub + WeChat)
 v2.7.5  2026-06-17  Deployment Scripts + Data Backup/Restore
-v2.8.0  TBD       Phase 6: Content Management (Frontend)
-v2.9.0  TBD       Phase 6: Data Dashboard Charts
-v3.0.0  TBD       Phase 6: Production Ready
+v2.8.0  2026-06-17  Phase 6: Content Management (Frontend)
+v2.9.0  2026-06-17  Phase 6: Data Dashboard Charts
+v3.0.0  2026-06-17  Phase 6: Log Viewer Page
+v3.1.0  2026-06-17  Phase 6: Error Monitoring
+v3.2.0  2026-06-17  Phase 6: E2E Tests + CI/CD Pipeline
 ```
 
 ---

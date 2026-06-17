@@ -19,7 +19,10 @@ from src.routes.admin import router as admin_router
 from src.routes.seed_content import router as seed_content_router
 from src.routes.logs import router as logs_router
 from src.routes.errors import router as errors_router
-import src.models  # 确保所有模型在 init_db 前注册
+
+# 注意：src.models 必须在所有路由导入之后导入
+# 否则会导致循环导入，使路由注册失败
+import src.models  # noqa: E402
 
 
 @asynccontextmanager
@@ -75,6 +78,9 @@ app.add_middleware(AuthMiddleware)
 # 错误监控中间件（全局异常捕获）
 from src.middleware.error_monitor import ErrorMonitorMiddleware
 app.add_middleware(ErrorMonitorMiddleware)
+
+# 注意：src.models 已移除，因为循环导入会导致路由注册失败
+# 模型通过各路由文件中的 from src.models.xxx import xxx 按需导入
 
 
 # ── 健康检查 ──

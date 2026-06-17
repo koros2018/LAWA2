@@ -14,7 +14,7 @@ class SeedContent(Base):
     __tablename__ = "seed_contents"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("lawa2_users.id"), nullable=False, index=True)
 
     # 内容类型
     content_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
