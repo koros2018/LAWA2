@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { session } from '@/store/session'
 import {
   getAdminStats,
@@ -11,6 +11,7 @@ import {
   type UsersListResponse,
   type SetAdminResponse,
 } from '@/api/admin'
+import ECharts from '@/components/ECharts.vue'
 
 const activeTab = ref<'stats' | 'users'>('stats')
 const stats = ref<SystemStats | null>(null)
@@ -23,6 +24,52 @@ const userOffset = ref(0)
 const USERS_PAGE_SIZE = 20
 const togglingId = ref<string | null>(null)
 const currentUser = ref<UserAdmin | null>(null)
+
+// ── Chart Data ──
+const trendChartData = computed(() => {
+  if (!stats.value?.daily_trends?.length) return { xAxis: [], series: [] }
+  const dates = stats.value.daily_trends.map(d => d.date.slice(5))
+  return {
+    xAxis: dates,
+    series: [
+      { name: '活跃用户', data: stats.value.daily_trends.map(d => d.active_users), color: '#a78bfa', area: true },
+      { name: '事件数', data: stats.value.daily_trends.map(d => d.habit_events), color: '#60a5fa', area: true },
+    ],
+  }
+})
+
+const activityChartData = computed(() => {
+  if (!stats.value) return { xAxis: [], series: [] }
+  return {
+    xAxis: ['今日活跃', '7日新增', '桥梁互动', '照片上传', '推送通知'],
+    series: [{
+      name: '数量',
+      data: [
+        stats.value.active_users_today,
+        stats.value.new_users_7d,
+        stats.value.bridge_interactions,
+        stats.value.photos,
+        stats.value.push_notifications,
+      ],
+      color: '#34d399',
+    }],
+  }
+})
+
+const userDistributionData = computed(() => {
+  if (!stats.value) return { series: [] }
+  const total = stats.value.user_count || 1
+  const active = stats.value.active_users_today
+  const inactive = total - active
+  return {
+    series: [{
+      data: [
+        { value: active, name: `活跃 ${active}` },
+        { value: inactive, name: `非活跃 ${inactive}` },
+      ],
+    }],
+  }
+})
 
 async function loadStats() {
   statsLoading.value = true
@@ -148,8 +195,27 @@ onMounted(() => {
         <div class="stat-card"><span class="stat-icon">💾</span><div class="stat-info"><span class="stat-value">{{ formatSize(stats.db_size_bytes) }}</span><span class="stat-label">数据库 · Database</span></div></div>
       </div>
       
-      <!-- 7日趋势 -->
-      <div v-if="stats && stats.daily_trends" class="trend-section">
+      <!-- ECharts: 7日趋势 -->
+      <div class="chart-section">
+        <h3 class="section-title">📈 7日趋势 · 7-Day Trends</h3>
+        <ECharts type="line" :data="trendChartData" title="" />
+      </div>
+      
+      <!-- ECharts: 活动分布 -->
+      <div class="chart-section">
+        <h3 class="section-title">📊 活动分布 · Activity Distribution</h3>
+        <div class="charts-row">
+          <div class="chart-half">
+            <ECharts type="bar" :data="activityChartData" title="" />
+          </div>
+          <div class="chart-half">
+            <ECharts type="pie" :data="userDistributionData" title="" />
+          </div>
+        </div>
+      </div>
+      
+      <!-- 7日趋势（CSS 降级） -->
+      <div v-if="stats && stats.daily_trends" class="trend-section css-only">
         <h3 class="section-title">📈 7日趋势 · 7-Day Trends</h3>
         <div class="trend-bars">
           <div v-for="day in stats.daily_trends" :key="day.date" class="trend-bar">
@@ -271,6 +337,10 @@ onMounted(() => {
 
 /* ── 7日趋势 ── */
 .trend-section { margin-top: 1.5rem; }
+.chart-section { margin-top: 1.5rem; }
+.charts-row { display: flex; gap: 1rem; }
+.chart-half { flex: 1; }
+.css-only { margin-top: 1rem; opacity: 0.7; }
 .section-title { font-size: 1rem; color: #eee; margin-bottom: 0.8rem; }
 .trend-bars { display: flex; flex-direction: column; gap: 0.4rem; }
 .trend-bar { display: flex; align-items: center; gap: 0.5rem; }
