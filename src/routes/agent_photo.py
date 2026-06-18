@@ -10,6 +10,7 @@ from loguru import logger
 
 from src.database.main import get_db
 from src.engine.photo_engine import photo_engine, ALLOWED_MIME, MAX_FILE_SIZE
+from src.middleware.auth import get_current_user_id
 
 router = APIRouter(prefix="/agent/photo", tags=["photo-agent"])
 
@@ -18,10 +19,7 @@ class ChatRequest(BaseModel):
     message: str
 
 
-async def get_current_user_id(user_id: str = "default_user") -> str:
-    if not user_id:
-        raise HTTPException(status_code=400, detail="缺少 user_id")
-    return user_id
+# 认证依赖统一从 src.middleware.auth 导入
 
 
 @router.get("/health")

@@ -17,26 +17,12 @@ from loguru import logger
 from src.database.main import get_db
 from src.engine.admin_engine import admin_engine
 from src.models.user import User
+from src.middleware.auth import require_admin
 
 router = APIRouter(prefix="/api/v2/admin", tags=["admin"])
 
 
-async def require_admin(admin_user_id: str = Query(..., description="Admin User ID"), db: AsyncSession = Depends(get_db)) -> User:
-    """权限检查：仅管理员可访问 · Admin-only access check"""
-    if not admin_user_id:
-        raise HTTPException(status_code=400, detail="缺少 admin_user_id · Missing admin_user_id")
-    
-    from sqlalchemy import select
-    stmt = select(User).where(User.id == admin_user_id)
-    user = (await db.execute(stmt)).scalar_one_or_none()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="用户不存在 · User not found")
-    
-    if not user.is_admin:
-        raise HTTPException(status_code=403, detail="权限不足 · Admin access required")
-    
-    return user
+# 管理员权限检查统一从 src.middleware.auth 导入
 
 
 @router.get("/users")

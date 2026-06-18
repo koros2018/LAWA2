@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from src.database.main import get_db
+from src.middleware.auth import get_current_user_id
 from src.engine.action_engine import ActionEngine
 from src.engine.reward_engine import RewardEngine
 from src.engine.trigger_engine import TriggerEngine
@@ -31,8 +32,7 @@ def get_trigger_engine() -> TriggerEngine:
 def get_investment_engine() -> InvestmentEngine:
     return InvestmentEngine()
 
-async def get_current_user_id(user_id: str = "default_user") -> str:
-    return user_id
+# 认证依赖统一从 src.middleware.auth 导入
 
 
 # ── 健康检查 ──

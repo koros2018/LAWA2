@@ -9,20 +9,22 @@ LAWA2 — 种子语料管理引擎
 - vocabulary_card: 词汇卡片
 """
 
-from sqlalchemy import and_
+from sqlalchemy import and_, select, func
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.seed_content import SeedContent
 from src.models.user import User
 from datetime import datetime
 from typing import Optional
+from loguru import logger
 
 
 class SeedContentEngine:
     """种子语料管理引擎"""
 
     @staticmethod
-    def list_contents(
-        db: Session,
+    async def list_contents(
+        db: AsyncSession,
         user_id: int,
         content_type: Optional[str] = None,
         is_active: Optional[bool] = None,
@@ -31,39 +33,54 @@ class SeedContentEngine:
         page_size: int = 20,
     ) -> tuple[list[SeedContent], int]:
         """列出种子语料"""
-        query = db.query(SeedContent).filter(SeedContent.user_id == user_id)
+        stmt = select(SeedContent).where(SeedContent.user_id == user_id)
 
         if content_type:
-            query = query.filter(SeedContent.content_type == content_type)
+            stmt = stmt.where(SeedContent.content_type == content_type)
 
         if is_active is not None:
-            query = query.filter(SeedContent.is_active == is_active)
+            stmt = stmt.where(SeedContent.is_active == is_active)
 
         if search:
-            query = query.filter(
+            stmt = stmt.where(
                 (SeedContent.title.ilike(f"%{search}%")) |
                 (SeedContent.title_en.ilike(f"%{search}%")) |
                 (SeedContent.content.ilike(f"%{search}%"))
             )
 
-        total = query.count()
+        total_stmt = select(func.count(SeedContent.id)).where(SeedContent.user_id == user_id)
+        if content_type:
+            total_stmt = total_stmt.where(SeedContent.content_type == content_type)
+        if is_active is not None:
+            total_stmt = total_stmt.where(SeedContent.is_active == is_active)
+        if search:
+            total_stmt = total_stmt.where(
+                (SeedContent.title.ilike(f"%{search}%")) |
+                (SeedContent.title_en.ilike(f"%{search}%")) |
+                (SeedContent.content.ilike(f"%{search}%"))
+            )
+        total_result = await db.execute(total_stmt)
+        total = total_result.scalar()
 
-        offset = (page - 1) * page_size
-        contents = query.order_by(SeedContent.created_at.desc()).offset(offset).limit(page_size).all()
+        stmt = stmt.order_by(SeedContent.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+        result = await db.execute(stmt)
+        contents = result.scalars().all()
 
         return contents, total
 
     @staticmethod
-    def get_content(db: Session, user_id: int, content_id: int) -> Optional[SeedContent]:
+    async def get_content(db: AsyncSession, user_id: int, content_id: int) -> Optional[SeedContent]:
         """获取单个种子语料"""
-        return db.query(SeedContent).filter(
+        stmt = select(SeedContent).where(
             SeedContent.id == content_id,
             SeedContent.user_id == user_id,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        return result.scalar_one()
 
     @staticmethod
-    def create_content(
-        db: Session,
+    async def create_content(
+        db: AsyncSession,
         user_id: int,
         content_type: str,
         title: str,
@@ -88,13 +105,13 @@ class SeedContentEngine:
             is_system=is_system,
         )
         db.add(content)
-        db.commit()
-        db.refresh(content)
+        await db.commit()
+        await db.refresh(content)
         return content
 
     @staticmethod
-    def update_content(
-        db: Session,
+    async def update_content(
+        db: AsyncSession,
         user_id: int,
         content_id: int,
         title: Optional[str] = None,
@@ -106,11 +123,13 @@ class SeedContentEngine:
         is_active: Optional[bool] = None,
     ) -> Optional[SeedContent]:
         """更新种子语料"""
-        existing = db.query(SeedContent).filter(
+        stmt = select(SeedContent).where(
             SeedContent.id == content_id,
             SeedContent.user_id == user_id,
             SeedContent.is_system == False,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        existing = result.scalar_one()
 
         if not existing:
             return None
@@ -131,41 +150,46 @@ class SeedContentEngine:
             existing.is_active = is_active
 
         existing.updated_at = datetime.utcnow()
-        db.commit()
-        db.refresh(existing)
+        await db.commit()
+        await db.refresh(existing)
         return existing
 
     @staticmethod
-    def delete_content(db: Session, user_id: int, content_id: int) -> bool:
+    async def delete_content(db: AsyncSession, user_id: int, content_id: int) -> bool:
         """删除种子语料"""
-        existing = db.query(SeedContent).filter(
+        stmt = select(SeedContent).where(
             SeedContent.id == content_id,
             SeedContent.user_id == user_id,
             SeedContent.is_system == False,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        existing = result.scalar_one()
 
         if not existing:
             return False
 
-        db.delete(existing)
-        db.commit()
+        await db.delete(existing)
+        await db.commit()
         return True
 
     @staticmethod
-    def get_system_contents(db: Session, content_type: Optional[str] = None) -> list[SeedContent]:
+    async def get_system_contents(db: AsyncSession, content_type: Optional[str] = None) -> list[SeedContent]:
         """获取系统内置种子语料"""
-        query = db.query(SeedContent).filter(SeedContent.is_system == True)
+        stmt = select(SeedContent).where(SeedContent.is_system == True)
 
         if content_type:
-            query = query.filter(SeedContent.content_type == content_type)
+            stmt = stmt.where(SeedContent.content_type == content_type)
 
-        return query.order_by(SeedContent.created_at.desc()).all()
+        result = await db.execute(stmt.order_by(SeedContent.created_at.desc()))
+        return result.scalars().all()
 
     @staticmethod
-    def get_by_type(db: Session, user_id: int, content_type: str) -> list[SeedContent]:
+    async def get_by_type(db: AsyncSession, user_id: int, content_type: str) -> list[SeedContent]:
         """按类型获取种子语料"""
-        return db.query(SeedContent).filter(
+        stmt = select(SeedContent).where(
             SeedContent.user_id == user_id,
             SeedContent.content_type == content_type,
             SeedContent.is_active == True,
-        ).order_by(SeedContent.created_at.desc()).all()
+        ).order_by(SeedContent.created_at.desc())
+        result = await db.execute(stmt)
+        return result.scalars().all()

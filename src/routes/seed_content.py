@@ -5,8 +5,8 @@ LAWA2 — 种子语料管理路由
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from src.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.database.main import get_db
 from src.models.user import User
 from src.engine.seed_content_engine import SeedContentEngine
 from pydantic import BaseModel, Field
@@ -14,8 +14,7 @@ from typing import Optional
 
 router = APIRouter(prefix="/api/v2/seed", tags=["seed-content"])
 
-
-from src.middleware.auth_middleware import get_current_user
+from src.middleware.auth import get_current_user
 
 
 # ── Request/Response Models ──
@@ -50,17 +49,17 @@ class SeedContentListResponse(BaseModel):
 # ── Routes ──
 
 @router.get("/contents", response_model=SeedContentListResponse)
-def list_seed_contents(
+async def list_seed_contents(
     current_user: User = Depends(get_current_user),
     content_type: Optional[str] = Query(None),
     is_active: Optional[bool] = Query(None),
     search: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """列出种子语料"""
-    contents, total = SeedContentEngine.list_contents(
+    contents, total = await SeedContentEngine.list_contents(
         db=db,
         user_id=current_user.id,
         content_type=content_type,
@@ -78,26 +77,26 @@ def list_seed_contents(
 
 
 @router.get("/contents/{content_id}")
-def get_seed_content(
+async def get_seed_content(
     content_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """获取单个种子语料"""
-    content = SeedContentEngine.get_content(db=db, user_id=current_user.id, content_id=content_id)
+    content = await SeedContentEngine.get_content(db=db, user_id=current_user.id, content_id=content_id)
     if not content:
         raise HTTPException(status_code=404, detail="内容不存在")
     return content.to_dict()
 
 
 @router.post("/contents")
-def create_seed_content(
+async def create_seed_content(
     data: SeedContentCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """创建种子语料"""
-    content = SeedContentEngine.create_content(
+    content = await SeedContentEngine.create_content(
         db=db,
         user_id=current_user.id,
         content_type=data.content_type,
@@ -112,14 +111,14 @@ def create_seed_content(
 
 
 @router.put("/contents/{content_id}")
-def update_seed_content(
+async def update_seed_content(
     content_id: int,
     data: SeedContentUpdate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """更新种子语料"""
-    content = SeedContentEngine.update_content(
+    content = await SeedContentEngine.update_content(
         db=db,
         user_id=current_user.id,
         content_id=content_id,
@@ -137,23 +136,23 @@ def update_seed_content(
 
 
 @router.delete("/contents/{content_id}")
-def delete_seed_content(
+async def delete_seed_content(
     content_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """删除种子语料"""
-    success = SeedContentEngine.delete_content(db=db, user_id=current_user.id, content_id=content_id)
+    success = await SeedContentEngine.delete_content(db=db, user_id=current_user.id, content_id=content_id)
     if not success:
         raise HTTPException(status_code=404, detail="内容不存在或为系统内置")
     return {"message": "已删除 · Deleted ✓", "content_id": content_id}
 
 
 @router.get("/contents/system/{content_type}")
-def get_system_contents(
+async def get_system_contents(
     content_type: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """获取系统内置种子语料（无需认证）"""
-    contents = SeedContentEngine.get_system_contents(db=db, content_type=content_type)
+    contents = await SeedContentEngine.get_system_contents(db=db, content_type=content_type)
     return {"items": [c.to_dict() for c in contents], "total": len(contents)}

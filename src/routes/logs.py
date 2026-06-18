@@ -5,12 +5,12 @@ LAWA2 — 日志管理路由
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
-from src.database import get_db
+from src.database.main import get_db
 from src.models.user import User
 from src.engine.log_engine import LogEngine
-from src.middleware.auth_middleware import get_current_user
+from src.middleware.auth import get_current_user
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -78,13 +78,16 @@ def get_log_stats(
 ):
     """获取日志统计信息"""
     stats = LogEngine.get_log_stats()
+    # Ensure file_size_human is always present
+    if 'file_size_human' not in stats:
+        stats['file_size_human'] = LogEngine._format_size(stats.get('file_size', 0))
     return LogStatsResponse(**stats)
 
 
 @router.delete("", response_model=ClearLogsResponse)
-def clear_logs(
+async def clear_logs(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """清空日志文件（仅管理员）"""
     if not current_user.is_admin:

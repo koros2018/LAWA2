@@ -5,11 +5,9 @@ LAWA2 — 错误监控路由
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from src.database import get_db
 from src.models.user import User
 from src.middleware.error_monitor import get_error_stats, clear_error_stats
-from src.middleware.auth_middleware import get_current_user
+from src.middleware.auth import get_current_user
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/v2/errors", tags=["errors"])
@@ -42,9 +40,8 @@ def get_errors_stats(
 
 
 @router.delete("/stats")
-def clear_errors_stats(
+async def clear_errors_stats(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
 ):
     """清空错误统计（仅管理员）"""
     if not current_user.is_admin:

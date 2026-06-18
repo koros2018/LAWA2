@@ -20,6 +20,7 @@ from src.engine.action_engine import ActionEngine
 from src.engine.reward_engine import RewardEngine
 from src.engine.trigger_engine import TriggerEngine
 from src.engine.investment_engine import InvestmentEngine
+from src.middleware.auth import get_current_user_id
 
 router = APIRouter(prefix="/api/v1/habit", tags=["habit"])
 
@@ -38,9 +39,7 @@ def get_trigger_engine() -> TriggerEngine:
 def get_investment_engine() -> InvestmentEngine:
     return InvestmentEngine()
 
-async def get_current_user_id(user_id: str = "default_user") -> str:
-    """从请求参数获取 user_id"""
-    return user_id
+# 认证依赖统一从 src.middleware.auth 导入
 
 
 # ── 请求/响应模型 ──
