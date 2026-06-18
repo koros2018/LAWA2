@@ -22,6 +22,12 @@ from src.engine.photo_engine import photo_engine, ALLOWED_MIME, MAX_FILE_SIZE
 router = APIRouter(prefix="/api/v2/photo", tags=["photo"])
 
 
+@router.get("/health")
+async def photo_health():
+    """拍照 Agent 健康检查"""
+    return {"status": "ok", "agent": "photo", "version": "2.5.0"}
+
+
 # ── 请求模型 ──
 
 class ChatRequest(BaseModel):
