@@ -307,9 +307,9 @@ PhotoChat
 | 6.7 | 统一认证依赖 | 统一 auth 依赖注入 | P1 | ✅ v3.3.0 |
 | 6.8 | API 参数标准化 | 所有 Query/Path 参数添加 description | P2 | ✅ v3.4.0 |
 | 6.9 | 测试用户管理 | 自动创建/清理测试用户 | P2 | ✅ v3.5.0 |
-| 6.10 | 文件上传测试 | multipart/form-data 测试 | P3 | 🔲 未开始 |
+| 6.10 | 文件上传测试 | multipart/form-data 测试 | P3 | ✅ v3.6.0 |
 
-**Phase 6 进度：9/10 子任务已完成，P1-P3 级别均已覆盖。**
+**Phase 6 进度：10/10 子任务已完成，P1-P3 级别均已覆盖。**
 
 **API 变更：**
 ```
@@ -355,7 +355,7 @@ P6  [🔲] Phase 6 — 质量增强 + 生产就绪
     ✅ 6.7 统一认证依赖 (v3.3.0)
     ✅ 6.8 API 参数标准化 (v3.4.0)
     ✅ 6.9 测试用户管理 (v3.5.0)
-    🔲 6.10 文件上传测试
+    ✅ 6.10 文件上传测试 (v3.6.0)
 ```
 
 ---
@@ -385,6 +385,7 @@ v3.2.0  2026-06-17  Phase 6: E2E Tests + CI/CD Pipeline
 v3.3.0  2026-06-18  Phase 6: Unified Auth Dependencies (6.7)
 v3.4.0  2026-06-18  Phase 6: API Parameter Standardization (6.8)
 v3.5.0  2026-06-18  Phase 6: Test User Management (6.9)
+v3.6.0  2026-06-18  Phase 6: File Upload E2E Tests (6.10)
 ```
 
 ---
