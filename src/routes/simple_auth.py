@@ -178,10 +178,10 @@ async def save_profile(
 
 @router.get("/me")
 async def get_current_user_info(
-    user_id: str = Query(...),
+    user_id: str = Query(..., description="用户ID"),
     db: AsyncSession = Depends(get_db),
 ):
-    """获取当前用户信息（用于 OAuth 回调后前端加载用户资料）"""
+    """获取当前用户信息 · Get current user info"""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
@@ -206,10 +206,10 @@ async def get_current_user_info(
 
 @router.post("/refresh")
 async def refresh_token(
-    user_id: str = Query(...),
+    user_id: str = Query(..., description="用户ID"),
     db: AsyncSession = Depends(get_db),
 ):
-    """刷新 JWT Token（延长有效期）"""
+    """刷新 JWT Token（延长有效期） · Refresh token"""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:

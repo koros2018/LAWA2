@@ -1,11 +1,12 @@
 """LAWA2 事项提醒 Agent — 路由"""
 from datetime import date, datetime
 from typing import Optional
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends, Path
 from pydantic import BaseModel
 from loguru import logger
 
 from src.engine.reminder_engine import reminder_engine
+from src.middleware.auth import get_current_user_id
 
 router = APIRouter(prefix="/api/v2/reminder", tags=["reminder"])
 
@@ -35,12 +36,12 @@ class EventUpdate(BaseModel):
 
 @router.get("/events")
 async def list_events(
-    user_id: str = Query("test_user"),
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    event_type: Optional[str] = None,
+    user_id: str = Depends(get_current_user_id),
+    start_date: Optional[str] = Query(None, description="开始日期 YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="结束日期 YYYY-MM-DD"),
+    event_type: Optional[str] = Query(None, description="事件类型: personal/holiday/todo/anniversary"),
 ):
-    """查询事件列表"""
+    """查询事件列表 · Get events"""
     try:
         sd = date.fromisoformat(start_date) if start_date else None
         ed = date.fromisoformat(end_date) if end_date else None
@@ -74,8 +75,8 @@ async def list_events(
 
 
 @router.get("/events/{event_id}")
-async def get_event(event_id: str):
-    """获取单个事件"""
+async def get_event(event_id: str = Path(..., description="事件ID")):
+    """获取单个事件 · Get event"""
     event = await reminder_engine.get_event(event_id)
     if not event:
         return {"status": "error", "message": "事件不存在"}
@@ -102,9 +103,9 @@ async def get_event(event_id: str):
 @router.post("/events")
 async def create_event(
     body: EventCreate,
-    user_id: str = Query("test_user"),
+    user_id: str = Depends(get_current_user_id),
 ):
-    """创建事件"""
+    """创建事件 · Create event"""
     try:
         d = date.fromisoformat(body.event_date)
     except ValueError:
@@ -128,8 +129,11 @@ async def create_event(
 
 
 @router.put("/events/{event_id}")
-async def update_event(event_id: str, body: EventUpdate):
-    """更新事件"""
+async def update_event(
+    body: EventUpdate,
+    event_id: str = Path(..., description="事件ID"),
+):
+    """更新事件 · Update event"""
     kwargs = body.model_dump(exclude_none=True)
     if "event_date" in kwargs:
         try:
@@ -144,8 +148,8 @@ async def update_event(event_id: str, body: EventUpdate):
 
 
 @router.delete("/events/{event_id}")
-async def delete_event(event_id: str):
-    """删除事件"""
+async def delete_event(event_id: str = Path(..., description="事件ID")):
+    """删除事件 · Delete event"""
     ok = await reminder_engine.delete_event(event_id)
     if not ok:
         return {"status": "error", "message": "事件不存在"}
@@ -154,10 +158,10 @@ async def delete_event(event_id: str):
 
 @router.get("/upcoming")
 async def upcoming_events(
-    user_id: str = Query("test_user"),
-    days: int = Query(7, description="未来几天"),
+    user_id: str = Depends(get_current_user_id),
+    days: int = Query(7, ge=1, le=365, description="未来几天"),
 ):
-    """获取即将到来的事件"""
+    """获取即将到来的事件 · Get upcoming events"""
     events = await reminder_engine.get_upcoming(user_id, days=days)
     return {
         "status": "ok",
@@ -179,9 +183,9 @@ async def upcoming_events(
 
 @router.get("/today")
 async def today_events(
-    user_id: str = Query("test_user"),
+    user_id: str = Depends(get_current_user_id),
 ):
-    """获取今日事件"""
+    """获取今日事件 · Get today's events"""
     events = await reminder_engine.get_today(user_id)
     return {
         "status": "ok",
@@ -205,7 +209,7 @@ async def today_events(
 async def holiday_list(
     year: Optional[int] = Query(None, description="年份，默认当前年"),
 ):
-    """获取节假日列表（含文化背景）"""
+    """获取节假日列表（含文化背景） · Get holidays"""
     if year is None:
         year = date.today().year
     events = await reminder_engine.list_events(
@@ -230,10 +234,10 @@ async def holiday_list(
 
 @router.post("/generate-greeting")
 async def generate_greeting(
-    event_id: str,
-    user_name: str = Query("你"),
+    event_id: str = Query(..., description="事件ID"),
+    user_name: str = Query("你", description="用户姓名"),
 ):
-    """为纪念日生成祝福"""
+    """为纪念日生成祝福 · Generate greeting"""
     greeting = await reminder_engine.generate_greeting(event_id, user_name)
     if not greeting:
         return {"status": "error", "message": "事件不存在"}

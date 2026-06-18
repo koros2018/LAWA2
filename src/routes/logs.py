@@ -48,13 +48,13 @@ class ClearLogsResponse(BaseModel):
 @router.get("", response_model=LogListResponse)
 def list_logs(
     current_user: User = Depends(get_current_user),
-    lines: int = Query(100, ge=1, le=1000),
-    level: Optional[str] = Query(None),
-    search: Optional[str] = Query(None),
-    start_time: Optional[str] = Query(None),
-    end_time: Optional[str] = Query(None),
+    lines: int = Query(100, ge=1, le=1000, description="返回条数"),
+    level: Optional[str] = Query(None, description="日志级别"),
+    search: Optional[str] = Query(None, description="搜索关键词"),
+    start_time: Optional[str] = Query(None, description="开始时间 ISO 格式"),
+    end_time: Optional[str] = Query(None, description="结束时间 ISO 格式"),
 ):
-    """列出系统日志"""
+    """列出系统日志 · List logs"""
     start_dt = datetime.fromisoformat(start_time) if start_time else None
     end_dt = datetime.fromisoformat(end_time) if end_time else None
 

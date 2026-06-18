@@ -1,23 +1,17 @@
 """
 LAWA2 — 推送通知 API
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, Body, Path
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from loguru import logger
 
 from src.engine.push_engine import push_engine
+from src.middleware.auth import get_current_user_id
 
 router = APIRouter(prefix="/api/v2/push", tags=["push"])
 
 
-def withUser(user_id: str = Query(..., description="User ID")) -> str:
-    """依赖注入：获取用户ID"""
-    if not user_id:
-        raise HTTPException(status_code=400, detail="缺少 user_id")
-    return user_id
-
-
 @router.get("/preferences")
-async def get_preferences(user_id: str = Depends(withUser)):
+async def get_preferences(user_id: str = Depends(get_current_user_id)):
     """获取推送偏好 · Get push preferences"""
     try:
         pref = await push_engine.get_or_create_preferences(user_id)
@@ -39,16 +33,16 @@ async def get_preferences(user_id: str = Depends(withUser)):
 
 @router.put("/preferences")
 async def update_preferences(
-    user_id: str = Depends(withUser),
-    push_enabled: bool = Body(None),
-    reminder_push: bool = Body(None),
-    holiday_push: bool = Body(None),
-    culture_egg_push: bool = Body(None),
-    milestone_push: bool = Body(None),
-    daily_feed_push: bool = Body(None),
-    morning_time: str = Body(None),
-    noon_time: str = Body(None),
-    evening_time: str = Body(None),
+    user_id: str = Depends(get_current_user_id),
+    push_enabled: bool = Body(None, description="是否启用推送"),
+    reminder_push: bool = Body(None, description="是否启用提醒推送"),
+    holiday_push: bool = Body(None, description="是否启用节假日推送"),
+    culture_egg_push: bool = Body(None, description="是否启用文化彩蛋推送"),
+    milestone_push: bool = Body(None, description="是否启用里程碑推送"),
+    daily_feed_push: bool = Body(None, description="是否启用每日信息流推送"),
+    morning_time: str = Body(None, description="晨间推送时间"),
+    noon_time: str = Body(None, description="午间推送时间"),
+    evening_time: str = Body(None, description="晚间推送时间"),
 ):
     """更新推送偏好 · Update push preferences"""
     try:
@@ -80,8 +74,8 @@ async def update_preferences(
 
 @router.get("/notifications")
 async def get_notifications(
-    user_id: str = Depends(withUser),
-    unread_only: bool = Query(False),
+    user_id: str = Depends(get_current_user_id),
+    unread_only: bool = Query(False, description="仅返回未读通知"),
 ):
     """获取通知列表 · Get notifications"""
     try:
@@ -93,7 +87,10 @@ async def get_notifications(
 
 
 @router.put("/notifications/{notification_id}/read")
-async def mark_read(user_id: str = Depends(withUser), notification_id: str = Path(..., description="Notification ID")):
+async def mark_read(
+    user_id: str = Depends(get_current_user_id),
+    notification_id: int = Path(..., description="通知ID"),
+):
     """标记通知已读 · Mark notification as read"""
     try:
         result = await push_engine.mark_read(notification_id)
@@ -104,7 +101,7 @@ async def mark_read(user_id: str = Depends(withUser), notification_id: str = Pat
 
 
 @router.post("/check")
-async def trigger_check(user_id: str = Depends(withUser)):
+async def trigger_check(user_id: str = Depends(get_current_user_id)):
     """手动触发推送检查 · Manually trigger push check"""
     try:
         await push_engine.check_and_push()
@@ -116,10 +113,10 @@ async def trigger_check(user_id: str = Depends(withUser)):
 
 @router.post("/test")
 async def send_test(
-    user_id: str = Depends(withUser),
-    title: str = Body(..., embed=True),
-    body: str = Body(..., embed=True),
-    notification_type: str = Body("reminder", embed=True),
+    user_id: str = Depends(get_current_user_id),
+    title: str = Body(..., embed=True, description="通知标题"),
+    body: str = Body(..., embed=True, description="通知内容"),
+    notification_type: str = Body("reminder", embed=True, description="通知类型: reminder/holiday/culture/milestone"),
 ):
     """发送测试通知 · Send test notification"""
     try:

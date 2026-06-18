@@ -29,8 +29,8 @@ router = APIRouter(prefix="/api/v2/admin", tags=["admin"])
 async def list_users(
     admin_user: User = Depends(require_admin),
     search: Optional[str] = Query(None, description="搜索用户名/显示名"),
-    limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100, description="每页数量"),
+    offset: int = Query(0, ge=0, description="偏移量"),
     db: AsyncSession = Depends(get_db),
 ):
     """用户列表 · User list (admin only)"""
@@ -52,7 +52,7 @@ async def list_users(
 @router.get("/users/{user_id}")
 async def get_user_detail(
     admin_user: User = Depends(require_admin),
-    user_id: str = Path(..., description="User ID"),
+    user_id: str = Path(..., description="用户ID"),
     db: AsyncSession = Depends(get_db),
 ):
     """用户详情 · User detail (admin only)"""
@@ -65,7 +65,7 @@ async def get_user_detail(
 @router.post("/users/{user_id}/toggle")
 async def toggle_user(
     admin_user: User = Depends(require_admin),
-    user_id: str = Path(..., description="User ID"),
+    user_id: str = Path(..., description="用户ID"),
     db: AsyncSession = Depends(get_db),
 ):
     """切换用户激活状态 · Toggle user active status (admin only)"""
@@ -88,8 +88,8 @@ async def system_stats(
 @router.post("/users/{user_id}/admin")
 async def set_admin(
     admin_user: User = Depends(require_admin),
-    user_id: str = Path(..., description="User ID"),
-    is_admin: bool = Query(..., description="Admin status"),
+    user_id: str = Path(..., description="用户ID"),
+    is_admin: bool = Query(..., description="是否管理员"),
     db: AsyncSession = Depends(get_db),
 ):
     """设置用户管理员权限 · Set user admin status (super admin only)"""

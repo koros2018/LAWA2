@@ -51,14 +51,14 @@ class SeedContentListResponse(BaseModel):
 @router.get("/contents", response_model=SeedContentListResponse)
 async def list_seed_contents(
     current_user: User = Depends(get_current_user),
-    content_type: Optional[str] = Query(None),
-    is_active: Optional[bool] = Query(None),
-    search: Optional[str] = Query(None),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    content_type: Optional[str] = Query(None, description="内容类型"),
+    is_active: Optional[bool] = Query(None, description="是否启用"),
+    search: Optional[str] = Query(None, description="搜索关键词"),
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页数量"),
     db: AsyncSession = Depends(get_db),
 ):
-    """列出种子语料"""
+    """列出种子语料 · List seed contents"""
     contents, total = await SeedContentEngine.list_contents(
         db=db,
         user_id=current_user.id,
