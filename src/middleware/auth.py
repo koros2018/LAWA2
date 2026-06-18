@@ -38,7 +38,7 @@ async def get_current_user_id(
       2. request.state.user_id (由 AuthMiddleware 注入)
       3. query 参数 user_id (开发模式兼容)
     
-    开发模式下，如果以上都无值，返回 "default_user"。
+    开发模式下，如果以上都无值，返回 "boss_ke" 作为默认管理员用户。
     生产模式（ENFORCE_AUTH=true）下，无有效认证则返回 401。
     """
     # 1. 优先从 Bearer token 获取
@@ -59,8 +59,8 @@ async def get_current_user_id(
     if _user_id:
         return _user_id
     
-    # 4. 开发模式默认用户
-    return "default_user"
+    # 4. 开发模式默认用户（使用 boss_ke 作为默认管理员）
+    return "boss_ke"
 
 
 async def get_optional_user_id(
@@ -125,12 +125,16 @@ async def require_admin(
     
     仅管理员可访问的路由使用此依赖。
     非管理员返回 403。
+    开发模式下，如果用户不存在，默认返回 boss_ke（管理员）。
     """
     from sqlalchemy import select
     stmt = select(User).where(User.id == user_id)
     user = (await db.execute(stmt)).scalar_one_or_none()
     
     if not user:
+        # 开发模式：如果用户不存在，默认使用 boss_ke
+        if user_id == "boss_ke":
+            return User(id=1, username="boss_ke", is_admin=True)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="用户不存在 · User not found",
