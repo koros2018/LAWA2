@@ -261,15 +261,17 @@ class TestIntegration:
 class TestConcurrency:
     """并发行为记录"""
 
-    async def test_concurrent_actions(self, db_session):
-        """并发记录多个行为"""
+    async def test_concurrent_actions(self):
+        """并发记录多个行为（每个行为使用独立 session）"""
         from src.engine.action_engine import ActionEngine
         user_id = 'concurrent_user'
         
-        tasks = [
-            ActionEngine().record_habit(user_id, 'read_one_post', 30, db=db_session)
-            for _ in range(10)
-        ]
+        async def record_one():
+            from src.database.main import AsyncSessionLocal
+            async with AsyncSessionLocal() as session:
+                return await ActionEngine().record_habit(user_id, 'read_one_post', 30, db=session)
+        
+        tasks = [record_one() for _ in range(10)]
         results = await asyncio.gather(*tasks)
         assert len(results) == 10
         assert all(r['xp_earned'] >= 1 for r in results)
