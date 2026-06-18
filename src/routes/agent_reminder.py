@@ -50,10 +50,10 @@ async def reminder_agent_health():
 @router.get("/events")
 async def list_events(
     user_id: str = Depends(get_current_user_id),
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    event_type: Optional[str] = None,
-    limit: int = Query(50, ge=1, le=200),
+    start_date: Optional[str] = Query(None, description="开始日期 YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="结束日期 YYYY-MM-DD"),
+    event_type: Optional[str] = Query(None, description="事件类型: personal/holiday/todo/anniversary"),
+    limit: int = Query(50, ge=1, le=200, description="每页数量"),
     db: AsyncSession = Depends(get_db),
 ):
     """获取提醒列表 · Get reminders"""
@@ -70,7 +70,7 @@ async def list_events(
 
 @router.get("/events/{event_id}")
 async def get_event(
-    event_id: str,
+    event_id: str = Path(..., description="事件ID"),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
@@ -105,8 +105,8 @@ async def create_event(
 
 @router.put("/events/{event_id}")
 async def update_event(
-    event_id: str,
     event: EventUpdate,
+    event_id: str = Path(..., description="事件ID"),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
@@ -132,7 +132,7 @@ async def update_event(
 
 @router.delete("/events/{event_id}")
 async def delete_event(
-    event_id: str,
+    event_id: str = Path(..., description="事件ID"),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
@@ -145,7 +145,7 @@ async def delete_event(
 
 @router.get("/holidays")
 async def get_holidays(
-    year: Optional[int] = None,
+    year: Optional[int] = Query(None, description="年份，默认当前年"),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
@@ -166,8 +166,8 @@ async def get_today_holidays(
 
 @router.post("/generate-greeting")
 async def generate_greeting(
-    event_id: str,
-    user_name: str = "你",
+    event_id: str = Query(..., description="事件ID"),
+    user_name: str = Query("你", description="用户姓名"),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):

@@ -1,7 +1,7 @@
 """
 LAWA2 — 拍照 Agent 入口路由 (/agent/photo)
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Path
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
@@ -51,8 +51,8 @@ async def upload_photo(
 @router.get("/history")
 async def get_photo_history(
     user_id: str = Depends(get_current_user_id),
-    limit: int = Query(20, ge=1, le=100),
-    offset: int = 0,
+    limit: int = Query(20, ge=1, le=100, description="每页数量"),
+    offset: int = Query(0, ge=0, description="偏移量"),
     db: AsyncSession = Depends(get_db),
 ):
     """获取图片历史 · Get photo history"""
@@ -62,7 +62,7 @@ async def get_photo_history(
 
 @router.get("/{photo_id}")
 async def get_photo_detail(
-    photo_id: str,
+    photo_id: str = Path(..., description="图片ID"),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
@@ -75,7 +75,7 @@ async def get_photo_detail(
 
 @router.get("/{photo_id}/image")
 async def get_photo_image(
-    photo_id: str,
+    photo_id: str = Path(..., description="图片ID"),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
@@ -91,7 +91,7 @@ async def get_photo_image(
 
 @router.get("/{photo_id}/thumbnail")
 async def get_photo_thumbnail(
-    photo_id: str,
+    photo_id: str = Path(..., description="图片ID"),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
@@ -110,8 +110,8 @@ async def get_photo_thumbnail(
 
 @router.post("/{photo_id}/chat")
 async def chat_about_photo(
-    photo_id: str,
     req: ChatRequest,
+    photo_id: str = Path(..., description="图片ID"),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
@@ -124,9 +124,9 @@ async def chat_about_photo(
 
 @router.get("/{photo_id}/chats")
 async def get_photo_chats(
-    photo_id: str,
+    photo_id: str = Path(..., description="图片ID"),
     user_id: str = Depends(get_current_user_id),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=100, description="每页数量"),
     db: AsyncSession = Depends(get_db),
 ):
     """获取图片对话历史 · Get photo chat history"""
@@ -138,8 +138,8 @@ async def get_photo_chats(
 
 @router.post("/{photo_id}/share")
 async def share_photo_to_bridge(
-    photo_id: str,
-    target_type: str = "greet",
+    photo_id: str = Path(..., description="图片ID"),
+    target_type: str = Query("greet", description="分享目标类型: greet/teach"),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
