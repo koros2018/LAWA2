@@ -62,7 +62,7 @@ class TestUserEngine:
         # 检查用户是否已存在
         stmt = select(User).where(User.username == username)
         result = await db.execute(stmt)
-        existing = result.scalar_one()
+        existing = result.scalar_one_or_none()
         
         if existing:
             return existing
