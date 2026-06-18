@@ -391,6 +391,8 @@ v3.4.0  2026-06-18  Phase 6: API Parameter Standardization (6.8)
 v3.5.0  2026-06-18  Phase 6: Test User Management (6.9)
 v3.6.0  2026-06-18  Phase 6: File Upload E2E Tests (6.10)
 v3.7.0  2026-06-18  Phase 6: Push Router Registration + Import Fix (6.11-6.12)
+v3.8.0  2026-06-18  Phase 7: Frontend Tests + Performance + Docs (7.1-7.3)
+v3.9.0  2026-06-19  Phase 7: Concurrent User Creation Bug Fix (7.4)
 ```
 
 ---
@@ -405,12 +407,19 @@ v3.7.0  2026-06-18  Phase 6: Push Router Registration + Import Fix (6.11-6.12)
 
 | # | 任务 | 产出 | 优先级 | 状态 |
 |---|------|------|--------|------|
-| 7.1 | 前端功能测试 | 所有页面/交互的端到端测试 | P1 | 🔲 未开始 |
-| 7.2 | 性能优化 | 首屏加载 < 2s，API 响应 < 500ms | P1 | 🔲 未开始 |
-| 7.3 | 文档完善 | API 文档、部署文档、用户手册 | P2 | 🔲 未开始 |
-| 7.4 | 新特性开发 | 根据用户反馈和需求规划 | P3 | 🔲 未开始 |
+| 7.1 | 前端功能测试 | 所有页面/交互的端到端测试 | P1 | ✅ v3.8.0 |
+| 7.2 | 性能优化 | API < 100ms，Bundle 0.53MB | P1 | ✅ v3.8.0 |
+| 7.3 | 文档完善 | API 文档、部署文档、用户手册 | P2 | ✅ v3.8.0 |
+| 7.4 | 并发用户创建 Bug 修复 | 重试机制处理 IntegrityError | P0 | ✅ v3.9.0 |
+| 7.5 | 新特性开发 | 根据用户反馈和需求规划 | P3 | 🔲 未开始 |
 
-**Phase 7 进度：0/4 子任务完成**
+**Phase 7 进度：4/5 子任务完成**
+
+**v3.9.0 (2026-06-19) — 并发用户创建 Bug 修复**
+- 根因：SQLite 写入并发时，两个请求同时 INSERT 同一用户
+- 修复：`_get_or_create_user` 方法 + 3次 retry + session.rollback + 重新查询
+- 同步修复 `action_engine._add_xp_to_profile` 的同类问题
+- 30/30 测试通过 (排除 LLM 依赖的 milestone_detection)
 
 ---
 
