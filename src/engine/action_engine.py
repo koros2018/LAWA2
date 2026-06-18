@@ -211,13 +211,40 @@ class ActionEngine:
         return profile.streak_days if profile else 0
 
     async def _add_xp_to_profile(self, session: AsyncSession, user_id: str, xp: int):
-        """为用户添加成长 XP（自动创建用户）"""
-        stmt = select(User).where(User.id == user_id)
-        result = await session.execute(stmt)
-        profile = result.scalar_one_or_none()
+        """为用户添加成长 XP（自动创建用户，带并发冲突重试）"""
+        from src.engine.reward_engine import RewardEngine
+        from sqlalchemy.exc import IntegrityError
+        import asyncio
+
+        profile = None
+        for attempt in range(3):
+            stmt = select(User).where(User.id == user_id)
+            result = await session.execute(stmt)
+            profile = result.scalar_one_or_none()
+            if profile:
+                break
+            if attempt == 0:
+                # 第一次：尝试直接创建
+                try:
+                    profile = User(id=user_id, username=user_id[:20])
+                    session.add(profile)
+                    await session.flush()
+                    break
+                except IntegrityError:
+                    await session.rollback()
+                    await asyncio.sleep(0.02)
+                    continue
+            else:
+                # 重试：使用 _get_or_create_user
+                profile = await RewardEngine()._get_or_create_user(session, user_id)
+                if profile:
+                    break
+                await asyncio.sleep(0.02 * attempt)
+
         if not profile:
-            profile = User(id=user_id, username=user_id[:20])
-            session.add(profile)
+            # 兜底：用独立 session
+            profile = await RewardEngine()._get_or_create_user(session, user_id)
+
         profile.growth_xp = (profile.growth_xp or 0) + xp
         # 检查是否需要升级
         await self._check_level_up(session, profile)

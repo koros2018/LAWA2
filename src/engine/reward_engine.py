@@ -219,92 +219,10 @@ class RewardEngine:
 
         # 给用户加 XP（使用 get_or_create 避免并发冲突）
         from src.models.user import User
-        from sqlalchemy.dialects.sqlite import insert as sqlite_insert
         from sqlalchemy.exc import IntegrityError
         
-        # 先尝试查询用户
-        stmt = select(User).where(User.id == user_id)
-        result = await session.execute(stmt)
-        profile = result.scalar_one_or_none()
-        
-        if not profile:
-            # 用户不存在，尝试创建（使用重试机制处理并发冲突）
-            max_retries = 5
-            for attempt in range(max_retries):
-                try:
-                    # 直接插入，不指定 ON CONFLICT
-                    # 如果另一个请求先创建了用户，会因 id 或 username 唯一约束失败
-                    stmt = sqlite_insert(User).values(
-                        id=user_id,
-                        username=user_id[:20],
-                        native_lang="zh",
-                        learn_lang="en",
-                        interests="[]",
-                        growth_xp=0,
-                        habit_level=1,
-                        streak_days=0,
-                        bridge_level=0,
-                        created_at=datetime.now(timezone.utc),
-                        updated_at=datetime.now(timezone.utc),
-                        is_active=True,
-                        is_admin=False,
-                    )
-                    await session.execute(stmt)
-                    
-                    # 重新查询用户
-                    stmt = select(User).where(User.id == user_id)
-                    result = await session.execute(stmt)
-                    profile = result.scalar_one_or_none()
-                    if not profile:
-                        raise ValueError(f"User {user_id} not found after insert")
-                    break
-                    
-                except IntegrityError as e:
-                    # 并发创建失败（id 或 username 冲突），回滚并重试
-                    await session.rollback()
-                    if attempt < max_retries - 1:
-                        # 短暂等待后重试
-                        import asyncio
-                        await asyncio.sleep(0.01 * (attempt + 1))
-                        # 重新查询用户（可能在其他请求中已创建）
-                        stmt = select(User).where(User.id == user_id)
-                        result = await session.execute(stmt)
-                        profile = result.scalar_one_or_none()
-                        if profile:
-                            break
-                        continue
-                    else:
-                        # 最后一次尝试，使用新 session 查询
-                        async with AsyncSessionLocal() as new_session:
-                            stmt = select(User).where(User.id == user_id)
-                            result = await new_session.execute(stmt)
-                            profile = result.scalar_one_or_none()
-                            if not profile:
-                                raise
-                            # 获取用户 XP 并更新
-                            current_xp = profile.growth_xp or 0
-                            new_xp = current_xp + template["xp_bonus"]
-                            profile.growth_xp = new_xp
-                            await new_session.commit()
-                        # 使用新 session 创建 reward
-                        async with AsyncSessionLocal() as reward_session:
-                            new_reward = VariableReward(
-                                user_id=user_id,
-                                reward_type=reward_type,
-                                reward_value=reward_value,
-                                surprise_level=template["surprise_level"],
-                                xp_bonus=template["xp_bonus"],
-                            )
-                            reward_session.add(new_reward)
-                            await reward_session.commit()
-                        logger.info(f"奖励 {reward_type} 发放给用户 {user_id[:8]}, +{template['xp_bonus']}xp (并发创建重试)")
-                        return {
-                            "id": new_reward.id,
-                            "reward_type": reward_type,
-                            "reward_value": reward_value,
-                            "surprise_level": template["surprise_level"],
-                            "xp_bonus": template["xp_bonus"],
-                        }
+        # 尝试获取或创建用户（最多重试 3 次）
+        profile = await self._get_or_create_user(session, user_id)
         
         # 更新 XP
         profile.growth_xp = (profile.growth_xp or 0) + template["xp_bonus"]
@@ -320,6 +238,75 @@ class RewardEngine:
             "surprise_level": template["surprise_level"],
             "xp_bonus": template["xp_bonus"],
         }
+
+    async def _get_or_create_user(self, session: AsyncSession, user_id: str):
+        """
+        获取或创建用户，处理并发冲突。
+        
+        使用 retry 模式：
+        1. 先查询用户是否存在
+        2. 不存在则尝试 INSERT
+        3. 如果 IntegrityError（并发冲突），回滚并重新查询
+        4. 重试最多 3 次
+        """
+        from src.models.user import User
+        from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+        from sqlalchemy.exc import IntegrityError
+        import asyncio
+
+        for attempt in range(3):
+            # 查询用户
+            stmt = select(User).where(User.id == user_id)
+            result = await session.execute(stmt)
+            profile = result.scalar_one_or_none()
+
+            if profile:
+                return profile
+
+            if attempt > 0:
+                # 重试时短暂等待
+                await asyncio.sleep(0.02 * attempt)
+
+            try:
+                # 尝试创建用户
+                stmt = sqlite_insert(User).values(
+                    id=user_id,
+                    username=user_id[:20],
+                    native_lang="zh",
+                    learn_lang="en",
+                    interests="[]",
+                    growth_xp=0,
+                    habit_level=1,
+                    streak_days=0,
+                    bridge_level=0,
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc),
+                    is_active=True,
+                    is_admin=False,
+                )
+                await session.execute(stmt)
+
+                # 重新查询确认
+                stmt = select(User).where(User.id == user_id)
+                result = await session.execute(stmt)
+                profile = result.scalar_one_or_none()
+                if profile:
+                    return profile
+
+            except IntegrityError:
+                # 并发冲突：另一个请求刚创建了同 id 或 username 的用户
+                # 回滚后下一轮重试会重新查询
+                await session.rollback()
+                continue
+
+        # 所有重试失败，使用独立 session 查询最后一次
+        async with AsyncSessionLocal() as new_session:
+            stmt = select(User).where(User.id == user_id)
+            result = await new_session.execute(stmt)
+            profile = result.scalar_one_or_none()
+            if profile:
+                return profile
+            raise RuntimeError(f"无法创建用户 {user_id}（并发冲突重试 3 次后仍失败）")
 
     async def _count_today_rewards(self, session: AsyncSession, user_id: str, min_surprise: int = 1) -> int:
         """统计今日奖励数"""
@@ -337,4 +324,6 @@ class RewardEngine:
         stmt = select(User).where(User.id == user_id)
         result = await session.execute(stmt)
         profile = result.scalar_one_or_none()
+        if not profile:
+            return 0
         return profile.streak_days or 0
