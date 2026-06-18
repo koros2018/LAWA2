@@ -20,6 +20,7 @@ from src.routes.seed_content import router as seed_content_router
 from src.routes.logs import router as logs_router
 from src.routes.errors import router as errors_router
 from src.routes.test_user import router as test_user_router
+from src.routes.push import router as push_router
 
 # 注意：src.models 必须在所有路由导入之后导入
 # 否则会导致循环导入，使路由注册失败
@@ -68,6 +69,7 @@ app.include_router(seed_content_router)
 app.include_router(logs_router)
 app.include_router(errors_router)
 app.include_router(test_user_router)
+app.include_router(push_router)
 
 # 已移除：github_auth router（经常失效且无用）
 # from src.routes.github_auth import router as github_auth_router

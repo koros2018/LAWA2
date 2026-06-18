@@ -1,13 +1,19 @@
 """
 LAWA2 — 推送通知 API
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, Path
 from loguru import logger
 
 from src.engine.push_engine import push_engine
 from src.middleware.auth import get_current_user_id
 
 router = APIRouter(prefix="/api/v2/push", tags=["push"])
+
+
+@router.get("/health")
+async def push_health():
+    """推送服务健康检查"""
+    return {"status": "ok", "module": "push", "version": "1.0.0"}
 
 
 @router.get("/preferences")
