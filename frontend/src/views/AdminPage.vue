@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { session } from '@/store/session'
+import { handleApiError, toast } from '@/utils/error'
 import {
   getAdminStats,
   getAdminUsers,
@@ -76,7 +77,7 @@ async function loadStats() {
   try {
     stats.value = await getAdminStats()
   } catch (e: any) {
-    console.error('Failed to load stats:', e)
+    handleApiError(e, '加载统计失败 · Load failed', 'Failed to load stats')
   } finally {
     statsLoading.value = false
   }
@@ -91,7 +92,7 @@ async function loadUsers(append = false) {
     usersTotal.value = data.total
     userOffset.value += USERS_PAGE_SIZE
   } catch (e: any) {
-    console.error('Failed to load users:', e)
+    handleApiError(e, '加载用户失败 · Load failed', 'Failed to load users')
   } finally {
     usersLoading.value = false
   }
@@ -104,7 +105,7 @@ async function toggleUser(userId: string) {
     const idx = users.value.findIndex(u => u.id === userId)
     if (idx >= 0) users.value[idx] = updated
   } catch (e: any) {
-    console.error('Toggle failed:', e)
+    handleApiError(e, '操作失败 · Toggle failed', 'Toggle failed')
   } finally {
     togglingId.value = null
   }
@@ -119,7 +120,7 @@ async function toggleAdmin(userId: string) {
     const idx = users.value.findIndex(u => u.id === userId)
     if (idx >= 0) users.value[idx] = updated
   } catch (e: any) {
-    console.error('Toggle admin failed:', e)
+    handleApiError(e, '权限变更失败 · Toggle admin failed', 'Failed to toggle admin')
   } finally {
     togglingId.value = null
   }

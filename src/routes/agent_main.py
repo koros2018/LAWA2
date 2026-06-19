@@ -45,25 +45,30 @@ async def main_agent_health():
 
 # ── 习惯相关 (来自 habit 路由) ──
 
+from pydantic import BaseModel
+
+class RecordActionBody(BaseModel):
+    habit_code: str
+    duration_seconds: int = 0
+    completion_status: str = "completed"
+    triggered_by: str = "manual"
+    feed_id: Optional[str] = None
+
 @router.post("/action")
 async def record_action(
-    habit_code: str,
-    duration_seconds: int = 0,
-    completion_status: str = "completed",
-    triggered_by: str = "manual",
-    feed_id: Optional[str] = None,
+    body: RecordActionBody,
     engine: ActionEngine = Depends(get_action_engine),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
     """记录微行为 · Record micro-action"""
-    result = await engine.record_action(
+    result = await engine.record_habit(
         user_id=user_id,
-        habit_code=habit_code,
-        duration_seconds=duration_seconds,
-        completion_status=completion_status,
-        triggered_by=triggered_by,
-        feed_id=feed_id,
+        habit_code=body.habit_code,
+        duration_seconds=body.duration_seconds,
+        completion_status=body.completion_status,
+        triggered_by=body.triggered_by,
+        feed_id=body.feed_id,
         db=db,
     )
     return {"status": "ok", "data": result}
@@ -75,7 +80,7 @@ async def get_summary(
     user_id: str = Depends(get_current_user_id),
 ):
     """今日行为摘要 · Today's action summary"""
-    result = await engine.get_daily_summary(user_id)
+    result = await engine.get_today_summary(user_id)
     return {"status": "ok", "data": result}
 
 
@@ -107,6 +112,16 @@ async def get_rewards(
 ):
     """最近奖励 · Recent rewards"""
     result = await engine.get_recent_rewards(user_id)
+    return {"status": "ok", "data": result}
+
+
+@router.get("/config")
+async def get_config(
+    engine: ActionEngine = Depends(get_action_engine),
+    user_id: str = Depends(get_current_user_id),
+):
+    """获取配置 · Get config"""
+    result = await engine.get_today_summary(user_id)
     return {"status": "ok", "data": result}
 
 

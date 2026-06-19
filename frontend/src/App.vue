@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { session } from '@/store/session'
+import Toast from '@/components/Toast.vue'
+import ErrorBoundary from '@/components/ErrorBoundary.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -38,6 +40,7 @@ const mainSubItems = [
   { name: 'home', label: '首页', labelEn: 'Home', icon: '🌿' },
   { name: 'feed', label: '信息流', labelEn: 'Feed', icon: '📡' },
   { name: 'bridge', label: '桥梁', labelEn: 'Bridge', icon: '🌉' },
+  { name: 'word-cards', label: '词汇', labelEn: 'Words', icon: '📚' },
   { name: 'garden', label: '花园', labelEn: 'Garden', icon: '🌱' },
   { name: 'profile', label: '我的', labelEn: 'Profile', icon: '👤' },
 ]
@@ -67,6 +70,7 @@ function isActive(name: string) {
 
 <template>
   <div class="app-shell">
+    <Toast />
     <router-view />
 
     <!-- Agent 选择底部导航 -->
@@ -137,17 +141,50 @@ function isActive(name: string) {
   border: none;
   color: var(--text-muted, #888);
   cursor: pointer;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
   min-width: 3.5rem;
+  position: relative;
+}
+
+.agent-nav-item:hover:not(.active) {
+  color: var(--text-secondary, #ccc);
+  transform: translateY(-2px);
+}
+
+.agent-nav-item:active:not(.active) {
+  transform: translateY(0);
 }
 
 .agent-nav-item.active {
   color: var(--accent, #a78bfa);
 }
 
+.agent-nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--accent, #a78bfa);
+  border-radius: 1.5px;
+  animation: nav-underline 0.3s ease-out;
+}
+
+@keyframes nav-underline {
+  from { width: 0; }
+  to { width: 20px; }
+}
+
 .agent-nav-icon {
   font-size: 1.2rem;
   line-height: 1;
+  transition: transform 0.2s;
+}
+
+.agent-nav-item:hover .agent-nav-icon:not(.active-icon) {
+  transform: scale(1.1);
 }
 
 .agent-nav-label {
@@ -189,17 +226,45 @@ function isActive(name: string) {
   border: none;
   color: var(--text-muted, #888);
   cursor: pointer;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
   font-size: 0.65rem;
+  position: relative;
+}
+
+.sub-nav-item:hover:not(.active) {
+  color: var(--text-secondary, #ccc);
+  transform: translateY(-2px);
+}
+
+.sub-nav-item:active:not(.active) {
+  transform: translateY(0);
 }
 
 .sub-nav-item.active {
   color: var(--accent, #a78bfa);
 }
 
+.sub-nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--accent, #a78bfa);
+  border-radius: 1.5px;
+  animation: nav-underline 0.3s ease-out;
+}
+
 .sub-nav-icon {
   font-size: 1rem;
   line-height: 1;
+  transition: transform 0.2s;
+}
+
+.sub-nav-item:hover .sub-nav-icon:not(.active-icon) {
+  transform: scale(1.1);
 }
 
 .sub-nav-label {

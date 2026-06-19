@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { session } from '@/store/session'
+import { handleApiError, toast } from '@/utils/error'
 import {
   uploadPhoto,
   getPhotoDetail,
@@ -22,6 +23,7 @@ const chats = ref<PhotoChat[]>([])
 const message = ref('')
 const loading = ref(false)
 const uploading = ref(false)
+const uploadProgress = ref(0)  // 上传进度 0-100
 const galleryOpen = ref(false)
 const chatEndRef = ref<HTMLElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -40,7 +42,7 @@ async function loadHistory() {
   try {
     photos.value = await getPhotoHistory(userId.value)
   } catch (e: any) {
-    console.error('加载图片历史失败:', e)
+    handleApiError(e, '加载图片历史失败 · Load failed', 'Failed to load photo history')
   }
 }
 
@@ -55,7 +57,7 @@ async function selectPhoto(photo: PhotoData) {
     currentPhoto.value = detail
     chats.value = await getPhotoChats(photo.id, userId.value)
   } catch (e: any) {
-    console.error('加载图片详情失败:', e)
+    handleApiError(e, '加载图片详情失败 · Load failed', 'Failed to load photo detail')
   } finally {
     loading.value = false
   }
@@ -68,15 +70,23 @@ async function handleFileUpload(event: Event) {
   if (!file || !userId.value) return
 
   uploading.value = true
+  uploadProgress.value = 0
+  // 模拟进度更新（实际上传无进度回调，用定时器模拟）
+  const progressInterval = setInterval(() => {
+    uploadProgress.value = Math.min(95, uploadProgress.value + Math.random() * 15)
+  }, 200)
   try {
     const result = await uploadPhoto(file, userId.value)
+    clearInterval(progressInterval)
+    uploadProgress.value = 100
     photos.value.unshift(result)
     await selectPhoto(result)
   } catch (e: any) {
-    console.error('上传失败:', e)
-    alert('Upload failed / 上传失败: ' + (e.message || 'unknown'))
+    clearInterval(progressInterval)
+    handleApiError(e, '上传失败 · Upload failed', 'Failed to upload photo')
   } finally {
     uploading.value = false
+    uploadProgress.value = 0
     if (fileInput.value) fileInput.value.value = ''
   }
 }
@@ -172,7 +182,7 @@ onMounted(() => { loadHistory() })
     <div class="preview-area">
       <div v-if="currentPhoto" class="photo-card">
         <div class="photo-image-wrapper">
-          <img v-if="currentPhoto.image_path" :src="getPhotoImageUrl(currentPhoto.id)" class="photo-img"
+          <img v-if="currentPhoto.image_path" :src="getPhotoImageUrl(currentPhoto.id)" class="photo-img" loading="lazy"
             :alt="currentPhoto.ai_description || currentPhoto.original_filename"
             @error="$event.target.style.display='none'" />
           <div class="photo-placeholder" v-if="!currentPhoto.image_path">
@@ -212,6 +222,10 @@ onMounted(() => { loadHistory() })
         <button class="upload-btn" :disabled="uploading">
           {{ uploading ? '上传中 · Uploading...' : '📷 选择图片 · Choose Photo' }}
         </button>
+        <div v-if="uploading && uploadProgress > 0" class="upload-progress">
+          <div class="upload-progress-bar" :style="{ width: uploadProgress + '%' }"></div>
+          <span class="upload-progress-text">{{ Math.round(uploadProgress) }}%</span>
+        </div>
       </div>
       <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="handleFileUpload" />
     </div>
@@ -299,7 +313,7 @@ onMounted(() => { loadHistory() })
         <div class="gallery-grid">
           <div v-for="photo in photos" :key="photo.id" class="gallery-item"
             :class="{ active: currentPhoto?.id === photo.id }" @click="selectPhoto(photo)">
-            <img v-if="photo.image_path" :src="getPhotoThumbnailUrl(photo.id)" class="gallery-thumb"
+            <img v-if="photo.image_path" :src="getPhotoThumbnailUrl(photo.id)" class="gallery-thumb" loading="lazy"
               @error="$event.target.style.display='none'" />
             <div v-else class="gallery-thumb-placeholder">📸</div>
             <div class="gallery-info">
@@ -346,6 +360,27 @@ onMounted(() => { loadHistory() })
   padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-size: 1rem; cursor: pointer; transition: opacity 0.2s;
 }
 .upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.upload-progress {
+  margin-top: 0.75rem;
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+.upload-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #6366f1);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.upload-progress-text {
+  position: absolute;
+  right: 0;
+  top: -20px;
+  font-size: 0.7rem;
+  color: var(--text-muted, #888);
+}
 .photo-card { background: rgba(255,255,255,0.04); border-radius: 1rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); }
 .photo-image-wrapper { width: 100%; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); overflow: hidden; border-radius: 0.75rem 0.75rem 0 0; }
 .photo-img { width: 100%; height: 100%; object-fit: contain; }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { handleApiError, toast } from '@/utils/error'
 import {
   getEvents, createEvent, updateEvent, deleteEvent,
   generateGreeting,
@@ -157,7 +158,7 @@ async function saveEvent() {
     editingEvent.value = null
     currentView.value = 'month'
     await loadEvents()
-  } catch (e) { console.error('Save failed', e) }
+  } catch (e) { handleApiError(e, '保存失败 · Save failed', 'Save failed') }
   finally { savingEvent.value = false }
 }
 
@@ -168,7 +169,7 @@ async function doDelete(id: string) {
     deletingId.value = null
     selectedDateEvents.value = selectedDateEvents.value.filter(e => e.id !== id)
     await loadEvents()
-  } catch (e) { console.error('Delete failed', e) }
+  } catch (e) { handleApiError(e, '删除失败 · Delete failed', 'Delete failed') }
 }
 
 async function doGreeting(eventId: string) {
@@ -176,7 +177,7 @@ async function doGreeting(eventId: string) {
   try {
     grettingData.value = await generateGreeting(eventId)
     showGreeting.value = true
-  } catch (e) { console.error('Greeting failed', e) }
+  } catch (e) { handleApiError(e, '祝福发送失败 · Send failed', 'Failed to send greeting') }
   finally { grettingLoading.value = false }
 }
 
@@ -187,7 +188,7 @@ async function loadEvents() {
     const fd = new Date(currentYear.value, currentMonth.value, 1)
     const ld = new Date(currentYear.value, currentMonth.value + 1, 0)
     events.value = await getEvents(fd.toISOString().slice(0, 10), ld.toISOString().slice(0, 10))
-  } catch (e) { console.error('Load events failed', e) }
+  } catch (e) { handleApiError(e, '加载日程失败 · Load failed', 'Failed to load events') }
   finally { loading.value = false }
 }
 

@@ -1,5 +1,66 @@
 import { ref, computed } from 'vue'
-import { getSeedContents, createSeedContent, updateSeedContent, deleteSeedContent, getSystemContents, SeedContent } from './seed'
+import { apiGet, apiPost, apiPut, apiDelete } from './client'
+import { handleApiError, toast } from '@/utils/error'
+
+// ── 类型定义 ──
+
+export interface SeedContent {
+  id: number
+  content_type: string
+  title: string
+  title_en: string
+  content: string | null
+  content_en: string | null
+  tags: string[]
+  difficulty: string | null
+  is_active: boolean
+  is_system: boolean
+  created_at: string
+  updated_at: string
+}
+
+// ── 底层 API 函数 ──
+
+export async function getSeedContents(params: {
+  page?: number
+  page_size?: number
+  search?: string
+  content_type?: string
+}): Promise<{ items: SeedContent[]; total: number }> {
+  const query = new URLSearchParams()
+  if (params.page) query.set('page', String(params.page))
+  if (params.page_size) query.set('page_size', String(params.page_size))
+  if (params.search) query.set('search', params.search)
+  if (params.content_type) query.set('content_type', params.content_type)
+  const qs = query.toString()
+  return apiGet<{ items: SeedContent[]; total: number }>(`/api/v2/seed/contents${qs ? `?${qs}` : ''}`)
+}
+
+export async function createSeedContent(data: {
+  content_type: string
+  title: string
+  title_en: string
+  content?: string | null
+  content_en?: string | null
+  tags?: string[]
+  difficulty?: string | null
+}): Promise<SeedContent> {
+  return apiPost<SeedContent>('/api/v2/seed/contents', data)
+}
+
+export async function updateSeedContent(id: number, data: Partial<SeedContent>): Promise<SeedContent> {
+  return apiPut<SeedContent>(`/api/v2/seed/contents/${id}`, data)
+}
+
+export async function deleteSeedContent(id: number): Promise<void> {
+  await apiDelete(`/api/v2/seed/contents/${id}`)
+}
+
+export async function getSystemContents(contentType: string): Promise<SeedContent[]> {
+  return apiGet<SeedContent[]>(`/api/v2/seed/contents/system/${contentType}`)
+}
+
+// ── Composable ──
 
 const CONTENT_TYPES = [
   { value: 'social_scene', label: '社交场景 · Social Scene', label_en: 'Social Scene' },
@@ -70,7 +131,7 @@ export function useSeedContent() {
       contents.value = result.items
       total.value = result.total
     } catch (e) {
-      console.error('Failed to load seed contents:', e)
+      handleApiError(e, '加载种子内容失败 · Load failed', 'Failed to load seed contents')
     } finally {
       loading.value = false
     }
@@ -112,7 +173,7 @@ export function useSeedContent() {
       difficulty: 'beginner',
       is_active: true,
       is_system: false,
-    }
+    } as SeedContent
     showModal.value = true
   }
 

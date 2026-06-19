@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { handleApiError, toast } from '@/utils/error'
 import { getConfig, getSummary, getHealthInsights } from '@/api/agent_main'
 import type { HabitConfig, SummaryData, HealthInsightsData } from '@/api/agent_main'
 import { session, clearSession } from '@/store/session'
@@ -41,15 +42,17 @@ onMounted(async () => {
     summary.value = s
     health.value = h
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载画像失败 · Load failed', 'Failed to load profile')
   } finally {
     loading.value = false
   }
 })
 
 function handleLogout() {
-  clearSession()
-  router.push('/login')
+  if (confirm('确定要退出登录吗？\nConfirm log out?')) {
+    clearSession()
+    router.push('/login')
+  }
 }
 </script>
 
@@ -106,6 +109,10 @@ function handleLogout() {
           <div class="insight-status">
             <span class="is-badge" :class="health.trend">{{ healthLabel }}</span>
             <span class="is-trend">{{ trendIcon }}</span>
+            <svg class="trend-sparkline" viewBox="0 0 60 16" aria-hidden="true">
+              <polyline points="0,{{ 16 - (health.trend === 'up' ? 4 : health.trend === 'down' ? 12 : 8) }} 20,{{ 16 - (health.trend === 'up' ? 2 : health.trend === 'down' ? 14 : 6) }} 40,{{ 16 - (health.trend === 'up' ? 1 : health.trend === 'down' ? 15 : 4) }} 60,{{ 16 - (health.trend === 'up' ? 0 : health.trend === 'down' ? 16 : 2) }}"
+                fill="none" stroke="{{ health.trend === 'up' ? '#4ade80' : health.trend === 'down' ? '#f87171' : '#a78bfa' }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </div>
         <div class="health-bar-wrapper">
@@ -331,7 +338,14 @@ function handleLogout() {
 .insight-status { display: flex; align-items: center; gap: var(--space-sm); }
 .is-badge { font-size: var(--fs-caption); padding: 0.125rem 0.5rem; border-radius: 999px; background: rgba(74,222,128,0.15); color: #4ADE80; }
 .is-badge.down { background: rgba(239,68,68,0.15); color: #EF4444; }
+.is-badge.neutral { background: rgba(167,139,250,0.15); color: #a78bfa; }
 .is-trend { font-size: 1.25rem; }
+.trend-sparkline {
+  width: 60px;
+  height: 16px;
+  margin-left: var(--space-sm);
+  vertical-align: middle;
+}
 .health-bar-wrapper { height: 6px; background: var(--bg-primary); border-radius: 3px; overflow: hidden; margin-bottom: var(--space-md); }
 .health-bar { height: 100%; border-radius: 3px; transition: width var(--duration-slow) var(--ease-out); }
 .insight-dims { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-md); }

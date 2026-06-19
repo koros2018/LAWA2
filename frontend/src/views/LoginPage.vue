@@ -34,8 +34,11 @@ async function handleLogin() {
     setSession(result)
 
     if (!result.has_profile) {
+      // 先显示短暂的成功提示再跳转
+      await new Promise(r => setTimeout(r, 600))
       router.push('/onboarding')
     } else {
+      await new Promise(r => setTimeout(r, 600))
       router.push('/')
     }
   } catch (e: unknown) {

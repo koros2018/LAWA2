@@ -223,7 +223,8 @@ class TestIntegration:
     async def test_daily_reward(self, db_session):
         """每日首次推送奖励"""
         from src.engine.trigger_engine import TriggerEngine
-        user_id = 'reward_test_user'
+        import uuid
+        user_id = f'reward_test_{uuid.uuid4().hex[:8]}'
         
         feed = await TriggerEngine().get_feed(user_id, 'morning', db=db_session)
         assert feed['is_first_today'] == True
@@ -248,7 +249,8 @@ class TestIntegration:
         from src.engine.investment_engine import InvestmentEngine
         from src.engine.action_engine import ActionEngine
         
-        user_id = 'ms_test_user'
+        import uuid
+        user_id = f'ms_test_{uuid.uuid4().hex[:8]}'
         await ActionEngine().record_habit(user_id, 'read_one_post', 30, db=db_session)
         
         milestones = await InvestmentEngine().check_milestones(user_id)

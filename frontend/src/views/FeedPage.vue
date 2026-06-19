@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { getFeed, recordAction, getSocialScene, updateSocialLevel } from '@/api/agent_main'
 import type { FeedData, ActionResponse, SocialSceneData } from '@/api/agent_main'
+import { handleApiError, toast } from '@/utils/error'
 
 const activeTab = ref<'feed' | 'social'>('feed')
 
@@ -31,7 +32,7 @@ onMounted(async () => {
   try {
     feed.value = await getFeed()
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载信息流失败 · Load failed', 'Failed to load feed')
   } finally {
     feedLoading.value = false
   }
@@ -49,7 +50,7 @@ async function handleAction(code: string) {
       feed_id: feed.value.feed_id,
     })
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '操作失败 · Action failed', 'Action failed')
   }
   setTimeout(() => {
     actionResult.value = null
@@ -59,7 +60,7 @@ async function handleAction(code: string) {
 
 function refreshFeed() {
   feedLoading.value = true
-  getFeed().then(f => { feed.value = f }).catch(console.error).finally(() => { feedLoading.value = false })
+  getFeed().then(f => { feed.value = f }).catch(e => handleApiError(e, '刷新失败 · Refresh failed', 'Failed to refresh')).finally(() => { feedLoading.value = false })
 }
 
 // ── Social scene ──
@@ -69,7 +70,7 @@ async function loadScene() {
   try {
     scene.value = await getSocialScene(langDir.value)
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载社交场景失败 · Load failed', 'Failed to load social scene')
   } finally {
     sceneLoading.value = false
   }
@@ -81,7 +82,7 @@ async function levelUp(vocabId: string) {
     await updateSocialLevel(vocabId, next)
     if (scene.value) scene.value.understanding_level = next
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '更新等级失败 · Update failed', 'Failed to update level')
   }
 }
 
@@ -144,9 +145,15 @@ const levelLabel = (lvl: string) => {
     <!-- ═══════════════ Feed tab ═══════════════ -->
     <template v-if="activeTab === 'feed'">
       <div v-if="feedLoading" class="feed-card card">
-        <div class="skeleton" style="height: 1rem; width: 5rem; margin-bottom: 0.75rem;"></div>
-        <div class="skeleton" style="height: 1rem; width: 100%; margin-bottom: 0.5rem;"></div>
-        <div class="skeleton" style="height: 1rem; width: 70%;"></div>
+        <div class="skeleton-badge" style="width:6rem;height:1.2rem;margin-bottom:.5rem"></div>
+        <div class="skeleton-line" style="height:.9rem;width:100%;margin-bottom:.3rem"></div>
+        <div class="skeleton-line" style="height:.9rem;width:95%;margin-bottom:.3rem"></div>
+        <div class="skeleton-line" style="height:.9rem;width:90%;margin-bottom:.3rem"></div>
+        <div class="skeleton-line" style="height:.9rem;width:85%;margin-bottom:.3rem"></div>
+        <div class="skeleton-line" style="height:.9rem;width:80%;margin-bottom:.3rem"></div>
+        <div class="skeleton-line" style="height:.9rem;width:75%;margin-bottom:.6rem"></div>
+        <div class="skeleton-tags" style="margin-top:.5rem"></div>
+        <div class="skeleton-btn-row" style="margin-top:.5rem"></div>
       </div>
 
       <div v-else-if="feed" class="feed-card card">
@@ -200,17 +207,23 @@ const levelLabel = (lvl: string) => {
 
       <div v-else class="empty-state">
         <p class="empty-icon">📡</p>
-        <p>暂无信息流 · No feed content available</p>
-        <button class="btn btn-primary" @click="refreshFeed">刷新 · Refresh</button>
+        <p class="empty-title">暂无信息流 · No feed content</p>
+        <p class="empty-desc">读一条，都是浇灌<br/>Every read waters your language garden</p>
+        <button class="btn btn-primary" @click="refreshFeed">🔄 刷新 · Refresh</button>
       </div>
     </template>
 
     <!-- ═══════════════ Social scene tab ═══════════════ -->
     <template v-if="activeTab === 'social'">
       <div v-if="sceneLoading" class="feed-card card">
-        <div class="skeleton" style="height: 1rem; width: 6rem; margin-bottom: 0.75rem;"></div>
-        <div class="skeleton" style="height: 1rem; width: 100%; margin-bottom: 0.5rem;"></div>
-        <div class="skeleton" style="height: 1rem; width: 80%;"></div>
+        <div class="skeleton-badge" style="width:8rem;height:1.2rem;margin-bottom:.5rem"></div>
+        <div class="skeleton-word" style="height:1.5rem;width:60%;margin:.5rem 0 .3rem"></div>
+        <div class="skeleton-line" style="height:.85rem;width:100%;margin-bottom:.3rem"></div>
+        <div class="skeleton-line" style="height:.85rem;width:95%;margin-bottom:.3rem"></div>
+        <div class="skeleton-line" style="height:.85rem;width:90%;margin-bottom:.6rem"></div>
+        <div class="skeleton-example-box" style="height:4rem;width:100%;margin:.5rem 0 .5rem"></div>
+        <div class="skeleton-level-bar" style="height:2rem;width:100%;margin:.5rem 0"></div>
+        <div class="skeleton-btn-row" style="margin-top:.5rem"></div>
       </div>
 
       <div v-else-if="scene" class="scene-card card">
@@ -257,8 +270,9 @@ const levelLabel = (lvl: string) => {
 
       <div v-else class="empty-state">
         <p class="empty-icon">🗣️</p>
-        <p>加载社交场景<br>Loading social scene</p>
-        <button class="btn btn-primary" @click="loadScene">开始预演 · Start Rehearsal</button>
+        <p class="empty-title">暂无社交场景 · No social scene</p>
+        <p class="empty-desc">预演真实对话场景<br/>Rehearse real conversations</p>
+        <button class="btn btn-primary" @click="loadScene">🔄 开始预演 · Start Rehearsal</button>
       </div>
     </template>
   </div>
@@ -544,6 +558,45 @@ const levelLabel = (lvl: string) => {
   font-size: 3rem;
 }
 
+/* ── Skeleton loading ── */
+.skeleton-badge {
+  height: 1.2rem; background: rgba(167,139,250,0.15); border-radius: 0.6rem;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+.skeleton-word {
+  height: 1.5rem; background: rgba(167,139,250,0.2); border-radius: 0.3rem;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+.skeleton-line {
+  height: 0.9rem; background: rgba(255,255,255,0.06); border-radius: 0.2rem;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+.skeleton-tags {
+  display: flex; gap: 0.4rem; height: 1.5rem; background: rgba(255,255,255,0.04);
+  border-radius: 0.3rem; animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+.skeleton-example-box {
+  height: 4rem; background: rgba(255,255,255,0.04); border-radius: 0.5rem;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+.skeleton-level-bar {
+  height: 2rem; background: rgba(255,255,255,0.04); border-radius: 0.5rem;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+.skeleton-btn-row {
+  display: flex; gap: 0.5rem; height: 2rem;
+}
+.skeleton-btn-row::before {
+  content: ''; flex: 1; height: 100%; background: rgba(124,58,237,0.15);
+  border-radius: 0.5rem; animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+.skeleton-btn-row::after {
+  content: ''; flex: 0.6; height: 100%; background: rgba(99,102,241,0.1);
+  border-radius: 0.5rem; animation: skeleton-pulse 1.5s ease-in-out infinite 0.2s;
+}
+@keyframes skeleton-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+/* ── Slide transition ── */
 .slide-enter-active, .slide-leave-active {
   transition: all var(--duration-normal) var(--ease-out);
 }

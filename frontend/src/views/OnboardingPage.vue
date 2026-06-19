@@ -101,6 +101,7 @@ async function handleSubmit() {
         <span class="dot" :class="{ active: step >= 1 }"></span>
         <span class="dot-line"></span>
         <span class="dot" :class="{ active: step >= 2 }"></span>
+        <span class="step-counter">{{ step }}/2</span>
       </div>
 
       <Transition name="fade-slide" mode="out-in">
@@ -251,6 +252,7 @@ async function handleSubmit() {
   justify-content: center;
   gap: 0;
   margin-bottom: var(--space-2xl, 3rem);
+  position: relative;
 }
 
 .dot {
@@ -270,6 +272,14 @@ async function handleSubmit() {
   width: 40px;
   height: 1px;
   background: var(--border, rgba(255,255,255,0.06));
+}
+
+.step-counter {
+  position: absolute;
+  right: 0;
+  font-size: var(--fs-small, 0.75rem);
+  color: var(--text-tertiary, #6e6e73);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Step 内容 ── */

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getGarden, getGardenReport, getHealthInsights } from '@/api/agent_main'
 import type { GardenData, GardenReportData, HealthInsightsData } from '@/api/agent_main'
+import { handleApiError, toast } from '@/utils/error'
 
 const garden = ref<GardenData | null>(null)
 const report = ref<GardenReportData | null>(null)
@@ -40,6 +41,8 @@ interface VocabParticle {
 
 const particles = ref<VocabParticle[]>([])
 let animFrame = 0
+const hoveredParticle = ref<string | null>(null)  // 悬停高亮
+const clickedWord = ref<string | null>(null)  // 点击词汇详情
 
 const clusterWords = [
   { word: '破防了', clusterGroup: 0 }, { word: '绝绝子', clusterGroup: 0 }, { word: 'YYDS', clusterGroup: 0 },
@@ -76,15 +79,33 @@ function animateParticles() {
   const h = window.innerHeight
   const clusterCenters = [[180, 280], [w - 280, 180], [220, h - 200], [w - 300, h - 220]]
   for (const p of particles.value) {
-    p.x += p.vx
-    p.y += p.vy
-    if (p.x < 30 || p.x > w - 30) p.vx *= -1
-    if (p.y < 30 || p.y > h - 30) p.vy *= -1
+    // 悬停时减速
+    if (hoveredParticle.value === p.word) {
+      p.vx *= 0.95
+      p.vy *= 0.95
+    } else {
+      p.x += p.vx
+      p.y += p.vy
+      if (p.x < 30 || p.x > w - 30) p.vx *= -1
+      if (p.y < 30 || p.y > h - 30) p.vy *= -1
+    }
     const cc = clusterCenters[p.clusterGroup]
     p.vx += (cc[0] - p.x) * 0.00005
     p.vy += (cc[1] - p.y) * 0.00005
+    // 限制最大速度
+    const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
+    if (speed > 2) {
+      p.vx = (p.vx / speed) * 2
+      p.vy = (p.vy / speed) * 2
+    }
   }
   animFrame = requestAnimationFrame(animateParticles)
+}
+
+function onParticleClick(word: string) {
+  clickedWord.value = word
+  toast(`🌿 "${word}" 已收藏 · Word saved`, 'success')
+  setTimeout(() => { clickedWord.value = null }, 2000)
 }
 
 const healthLabel = computed(() => {
@@ -115,7 +136,7 @@ onMounted(async () => {
     report.value = r
     health.value = h
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载花园数据失败 · Load failed', 'Failed to load garden data')
   } finally {
     loading.value = false
   }
@@ -132,6 +153,10 @@ onUnmounted(() => {
   <div class="page garden-page">
     <div class="particle-overlay">
       <div v-for="p in particles" :key="p.id" class="vocab-particle"
+        :class="{ hovered: hoveredParticle === p.word, clicked: clickedWord === p.word }"
+        @mouseenter="hoveredParticle = p.word"
+        @mouseleave="hoveredParticle = null"
+        @click="onParticleClick(p.word)"
         :style="{
           left: p.x + 'px', top: p.y + 'px', fontSize: p.size + 'px',
           opacity: p.opacity,
@@ -252,10 +277,13 @@ onUnmounted(() => {
       <section v-if="garden?.new_milestones?.length" class="new-milestones">
         <h2 class="section-title">🎉 新里程碑 · New Milestones</h2>
         <div class="divider"></div>
-        <div v-for="m in garden.new_milestones" :key="m.code" class="card milestone-card">
-          <span class="ms-icon">🏆</span>
-          <div><h4 class="ms-name">{{ m.name }}</h4><p class="ms-desc">{{ m.description }}</p></div>
-        </div>
+        <TransitionGroup name="milestone">
+          <div v-for="m in garden.new_milestones" :key="m.code" class="card milestone-card">
+            <span class="ms-icon">🏆</span>
+            <div><h4 class="ms-name">{{ m.name }}</h4><p class="ms-desc">{{ m.description }}</p></div>
+            <div class="ms-XP">+{{ m.xp_awarded || 50 }} XP</div>
+          </div>
+        </TransitionGroup>
       </section>
 
       <div v-if="!totalWords && !loading" class="empty-state">
@@ -325,4 +353,44 @@ onUnmounted(() => {
 
 .empty-state { text-align: center; padding: var(--space-3xl) 0; display: flex; flex-direction: column; align-items: center; gap: var(--space-lg); color: var(--text-tertiary); }
 .empty-icon { font-size: 3rem; }
+
+/* ── Particle hover/click effects ── */
+.vocab-particle.hovered {
+  opacity: 1 !important;
+  transform: scale(1.3);
+  text-shadow: 0 0 12px hsla(260, 80%, 70%, 0.6) !important;
+  cursor: pointer;
+  z-index: 10;
+}
+.vocab-particle.clicked {
+  animation: word-pulse 0.5s ease-out;
+}
+@keyframes word-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.5); }
+  100% { transform: scale(1); }
+}
+
+/* ── Milestone celebration ── */
+.milestone-enter-active, .milestone-leave-active {
+  transition: all 0.5s ease;
+}
+.milestone-enter-from, .milestone-leave-to {
+  opacity: 0;
+  transform: translateY(20px) scale(0.9);
+}
+.milestone-enter-to {
+  animation: milestone-celebrate 0.6s ease-out;
+}
+@keyframes milestone-celebrate {
+  0% { transform: translateY(20px) scale(0.9); }
+  50% { transform: translateY(-5px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+.ms-xp {
+  font-size: var(--fs-small);
+  color: #fbbf24;
+  font-weight: var(--fw-bold);
+  margin-top: var(--space-xs);
+}
 </style>

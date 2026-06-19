@@ -36,6 +36,12 @@ const routes = [
     meta: { title: '花园 · Garden', icon: '🌱', requiresAuth: true, agent: 'main' },
   },
   {
+    path: '/word-cards',
+    name: 'word-cards',
+    component: () => import('@/views/WordCardPage.vue'),
+    meta: { title: '词汇 · Words', icon: '📚', requiresAuth: true, agent: 'main' },
+  },
+  {
     path: '/bridge',
     name: 'bridge',
     component: () => import('@/views/BridgePage.vue'),

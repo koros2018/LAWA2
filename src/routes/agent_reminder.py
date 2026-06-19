@@ -3,7 +3,7 @@ LAWA2 — 提醒 Agent 入口路由 (/agent/reminder)
 """
 from datetime import date, datetime
 from typing import Optional
-from fastapi import APIRouter, Query, Depends, HTTPException
+from fastapi import APIRouter, Query, Path, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger

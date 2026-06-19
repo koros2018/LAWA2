@@ -1,5 +1,31 @@
 import { ref, computed, onMounted } from 'vue'
-import { getErrorStats, clearErrorStats, ErrorEntry } from './errors'
+import { apiGet, apiDelete } from './client'
+import { handleApiError, toast } from '@/utils/error'
+
+// ── 类型定义 ──
+
+export interface ErrorEntry {
+  type: string
+  count: number
+  last_seen: string
+  example: string
+}
+
+// ── 底层 API 函数 ──
+
+export async function getErrorStats(): Promise<{
+  total_unique_errors: number
+  total_errors: number
+  top_errors: ErrorEntry[]
+}> {
+  return apiGet('/api/v2/errors/stats')
+}
+
+export async function clearErrorStats(): Promise<void> {
+  await apiDelete('/api/v2/errors/stats')
+}
+
+// ── Composable ──
 
 export function useErrorMonitor() {
   const stats = ref<{
@@ -28,7 +54,7 @@ export function useErrorMonitor() {
     try {
       stats.value = await getErrorStats()
     } catch (e) {
-      console.error('Failed to load error stats:', e)
+      handleApiError(e, '加载错误统计失败 · Load failed', 'Failed to load error stats')
     } finally {
       loading.value = false
     }

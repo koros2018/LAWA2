@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import type { SocialSceneData } from '@/api/agent_main'
 import { updateSocialLevel } from '@/api/agent_main'
+import { handleApiError } from '@/utils/error'
 
 const props = defineProps<{
   scene: SocialSceneData
@@ -43,7 +44,7 @@ async function upgradeLevel() {
     currentLevel.value = next
     emit('updated')
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '升级失败 · Update failed', 'Failed to upgrade level')
   } finally {
     busy.value = false
   }

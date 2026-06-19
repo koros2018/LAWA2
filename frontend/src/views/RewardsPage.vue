@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { getRewards, getMilestones } from '@/api/agent_main'
 import type { RewardData, MilestoneData } from '@/api/agent_main'
+import { handleApiError, toast } from '@/utils/error'
 
 const rewards = ref<RewardData[]>([])
 const milestones = ref<MilestoneData[]>([])
@@ -16,7 +17,7 @@ onMounted(async () => {
     rewards.value = r
     milestones.value = m
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载奖励失败 · Load failed', 'Failed to load rewards')
   } finally {
     loading.value = false
   }

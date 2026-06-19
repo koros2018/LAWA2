@@ -16,6 +16,10 @@ export default defineConfig({
         target: 'http://localhost:6290',
         changeOrigin: true,
       },
+      '/agent': {
+        target: 'http://localhost:6290',
+        changeOrigin: true,
+      },
     },
   },
 })

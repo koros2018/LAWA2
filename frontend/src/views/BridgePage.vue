@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { handleApiError, toast } from '@/utils/error'
+import TypingIndicator from '@/components/TypingIndicator.vue'
 import {
   getBridgePartner,
   getBridgeGreeting,
@@ -51,6 +53,7 @@ const progress = ref<BridgeProgress | null>(null)
 const userReply = ref('')
 const replying = ref(false)
 const replyError = ref('')
+const typing = ref(false)  // 语伴正在输入动画
 
 // Lv.2
 const likeReply = ref('')
@@ -83,7 +86,7 @@ onMounted(async () => {
     if (pr.current_level >= 4) activeTab.value = 'group'
     if (pr.current_level >= 5) activeTab.value = 'offline'
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载桥梁数据失败 · Load failed', 'Failed to load bridge data')
   } finally {
     loading.value = false
   }
@@ -96,18 +99,20 @@ async function startBridge() {
     greeting.value = g
     step.value = 'greeting'
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载问候失败 · Load failed', 'Failed to load greeting')
   } finally {
     loading.value = false
   }
 }
 
 async function sendReply() {
-  if (!userReply.value.trim() || !greeting.value) return
+  if (!userReply.value.trim() || !greeting.value || replying.value) return
   replyError.value = ''
   replying.value = true
+  typing.value = true  // 显示输入动画
   try {
     const result = await replyBridgeGreeting(greeting.value.interaction_id, userReply.value)
+    typing.value = false
     replyResult.value = result
     step.value = 'reply'
     userReply.value = ''
@@ -115,7 +120,9 @@ async function sendReply() {
     history.value = h
     progress.value = pr
   } catch (e: any) {
-    replyError.value = e.message || '发送失败'
+    typing.value = false
+    replyError.value = e.message || '发送失败 · Send failed'
+    handleApiError(e, '发送失败 · Send failed', 'Failed to send reply')
   } finally {
     replying.value = false
   }
@@ -137,16 +144,17 @@ async function startLike() {
     likePrompt.value = p
     step.value = 'like'
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载点赞提示失败 · Load failed', 'Failed to load like prompt')
   } finally {
     loading.value = false
   }
 }
 
 async function sendLike() {
-  if (!likeReply.value.trim() || !likePrompt.value) return
+  if (!likeReply.value.trim() || !likePrompt.value || replying.value) return
   replyError.value = ''
   replying.value = true
+  typing.value = true
   try {
     const result = await replyBridgeLike(likePrompt.value.interaction_id, likeReply.value)
     replyResult.value = result
@@ -156,7 +164,9 @@ async function sendLike() {
     history.value = h
     progress.value = pr
   } catch (e: any) {
-    replyError.value = e.message || '发送失败'
+    typing.value = false
+    replyError.value = e.message || '发送失败 · Send failed'
+    handleApiError(e, '发送失败 · Send failed', 'Failed to send like')
   } finally {
     replying.value = false
   }
@@ -178,16 +188,17 @@ async function startTeach() {
     teachPrompt.value = p
     step.value = 'teach'
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载教梗提示失败 · Load failed', 'Failed to load teach prompt')
   } finally {
     loading.value = false
   }
 }
 
 async function sendTeach() {
-  if (!teachWord.value.trim() || !teachMeaning.value.trim() || !teachPrompt.value) return
+  if (!teachWord.value.trim() || !teachMeaning.value.trim() || !teachPrompt.value || replying.value) return
   replyError.value = ''
   replying.value = true
+  typing.value = true
   try {
     const result = await teachBridgeWord(
       teachPrompt.value.interaction_id,
@@ -204,7 +215,9 @@ async function sendTeach() {
     history.value = h
     progress.value = pr
   } catch (e: any) {
-    replyError.value = e.message || '发送失败'
+    typing.value = false
+    replyError.value = e.message || '发送失败 · Send failed'
+    handleApiError(e, '发送失败 · Send failed', 'Failed to teach word')
   } finally {
     replying.value = false
   }
@@ -226,16 +239,17 @@ async function startGroup() {
     groupPrompt.value = p
     step.value = 'group'
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载群聊提示失败 · Load failed', 'Failed to load group prompt')
   } finally {
     loading.value = false
   }
 }
 
 async function sendGroupReply() {
-  if (!groupReplyText.value.trim() || !groupPrompt.value) return
+  if (!groupReplyText.value.trim() || !groupPrompt.value || replying.value) return
   replyError.value = ''
   replying.value = true
+  typing.value = true
   try {
     const result = await replyBridgeGroup(groupPrompt.value.interaction_id, groupReplyText.value)
     groupResult.value = result
@@ -245,7 +259,9 @@ async function sendGroupReply() {
     history.value = h
     progress.value = pr
   } catch (e: any) {
-    replyError.value = e.message || '发送失败'
+    typing.value = false
+    replyError.value = e.message || '发送失败 · Send failed'
+    handleApiError(e, '发送失败 · Send failed', 'Failed to send group reply')
   } finally {
     replying.value = false
   }
@@ -267,16 +283,17 @@ async function startOffline() {
     offlinePrompt.value = p
     step.value = 'offline'
   } catch (e) {
-    console.error(e)
+    handleApiError(e, '加载线下场景失败 · Load failed', 'Failed to load offline scene')
   } finally {
     loading.value = false
   }
 }
 
 async function sendOfflineReply() {
-  if (!offlineReplyText.value.trim() || !offlinePrompt.value) return
+  if (!offlineReplyText.value.trim() || !offlinePrompt.value || replying.value) return
   replyError.value = ''
   replying.value = true
+  typing.value = true
   try {
     const result = await replyBridgeOffline(offlinePrompt.value.interaction_id, offlineReplyText.value)
     offlineResult.value = result
@@ -286,7 +303,9 @@ async function sendOfflineReply() {
     history.value = h
     progress.value = pr
   } catch (e: any) {
-    replyError.value = e.message || '发送失败'
+    typing.value = false
+    replyError.value = e.message || '发送失败 · Send failed'
+    handleApiError(e, '发送失败 · Send failed', 'Failed to respond')
   } finally {
     replying.value = false
   }
@@ -425,6 +444,7 @@ function goBackToHistory() {
     </template>
 
     <template v-if="step === 'greeting' && greeting">
+      <TypingIndicator v-if="typing" />
       <div class="greeting-card card">
         <div class="greeting-header">
           <span class="greeting-from">{{ greeting.partner_name }}</span>
@@ -468,6 +488,7 @@ function goBackToHistory() {
 
     <!-- Lv.2 点赞桥 — 语伴分享 -->
     <template v-if="step === 'like' && likePrompt">
+      <TypingIndicator v-if="typing" />
       <div class="greeting-card card">
         <div class="greeting-header">
           <span class="greeting-from">{{ likePrompt.partner_name }} <span class="lv-badge">Lv.2</span></span>
@@ -511,6 +532,7 @@ function goBackToHistory() {
 
     <!-- Lv.3 梗桥 — 教语伴一个词 -->
     <template v-if="step === 'teach' && teachPrompt">
+      <TypingIndicator v-if="typing" />
       <div class="greeting-card card">
         <div class="greeting-header">
           <span class="greeting-from">{{ teachPrompt.partner_name }} <span class="lv-badge">Lv.3</span></span>
@@ -544,6 +566,7 @@ function goBackToHistory() {
 
     <!-- Lv.4 群聊桥 -->
     <template v-if="step === 'group' && groupPrompt">
+      <TypingIndicator v-if="typing" />
       <div class="greeting-card card">
         <div class="greeting-header">
           <span class="greeting-from">👥 {{ groupPrompt.scene }}</span>
@@ -599,6 +622,7 @@ function goBackToHistory() {
 
     <!-- Lv.5 线下桥 -->
     <template v-if="step === 'offline' && offlinePrompt">
+      <TypingIndicator v-if="typing" />
       <div class="greeting-card card">
         <div class="greeting-header">
           <span class="greeting-from">🏪 {{ offlinePrompt.scene }}</span>
@@ -775,6 +799,37 @@ function goBackToHistory() {
 .teach-input { width: 100%; background: var(--surface); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: var(--space-sm) var(--space-md); color: var(--text-primary); font-size: var(--fs-body); font-family: inherit; transition: border-color var(--duration-normal); }
 .teach-input:focus { outline: none; border-color: var(--accent); }
 .teach-input:disabled { opacity: .5; }
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(167, 139, 250, 0.08);
+  border-radius: 0.75rem;
+  color: #a78bfa;
+  font-size: 0.8rem;
+  margin-bottom: var(--space-md);
+}
+
+.typing-dots {
+  display: flex;
+  gap: 0.15rem;
+  align-items: center;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a78bfa;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+
+.typing-dot.active {
+  opacity: 1;
+}
+
 .empty-icon { font-size: 3rem; }
 @media (max-width:374px) { .greeting-bubble { padding: var(--space-sm); } .result-bubble { padding: var(--space-sm); } }
 </style>
