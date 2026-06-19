@@ -3,13 +3,14 @@ LAWA 词汇卡片 API 路由 (v2)
 
 POST   /api/v2/word-cards — 创建词汇卡片
 GET    /api/v2/word-cards — 获取词汇卡片列表
+GET    /api/v2/word-cards/stats — 复习统计
+GET    /api/v2/word-cards/review/queue — 待复习队列
+POST   /api/v2/word-cards/batch — 批量创建
+POST   /api/v2/word-cards/sync-from-companion — 从 companion 同步
 GET    /api/v2/word-cards/:id — 获取单个卡片
 PUT    /api/v2/word-cards/:id — 更新卡片
 DELETE /api/v2/word-cards/:id — 删除卡片
 POST   /api/v2/word-cards/:id/review — 提交复习
-GET    /api/v2/word-cards/review/queue — 待复习队列
-POST   /api/v2/word-cards/batch — 批量创建
-GET    /api/v2/word-cards/stats — 复习统计
 """
 import uuid
 from datetime import datetime, timezone
@@ -24,6 +25,8 @@ from src.models.word_card import WordCard, WordCardReview
 from src.services.word_card import word_card_service
 
 router = APIRouter(prefix="/api/v2/word-cards", tags=["word-cards"])
+
+# ── 静态路由（优先注册，避免被 /:id 捕获） ──
 
 
 @router.post("")
@@ -70,6 +73,54 @@ async def list_word_cards(
         page=page, page_size=page_size,
     )
     return result
+
+
+@router.get("/review/queue")
+async def get_review_queue(
+    user_id: str = Query(..., description="用户ID"),
+    lang: str = Query("en", description="语言"),
+    limit: int = Query(20, ge=1, le=50, description="数量"),
+    db: AsyncSession = Depends(get_db),
+):
+    """获取待复习队列"""
+    queue = await word_card_service.get_review_queue(db, user_id, lang, limit)
+    return {"due_count": len(queue), "queue": queue}
+
+
+@router.post("/batch")
+async def batch_create_cards(payload: dict, db: AsyncSession = Depends(get_db)):
+    """批量创建词汇卡片"""
+    user_id = payload.get("user_id")
+    cards = payload.get("cards", [])
+    if not user_id or not cards:
+        raise HTTPException(400, "user_id and cards required")
+
+    results = await word_card_service.batch_create(db, user_id, cards)
+    return {"created": len(results), "cards": results}
+
+
+@router.get("/stats")
+async def get_word_card_stats(
+    user_id: str = Query(..., description="用户ID"),
+    lang: str = Query("en", description="语言"),
+    db: AsyncSession = Depends(get_db),
+):
+    """获取词汇卡片统计"""
+    stats = await word_card_service.get_stats(db, user_id, lang)
+    return stats
+
+
+@router.post("/sync-from-companion")
+async def sync_from_companion(payload: dict, db: AsyncSession = Depends(get_db)):
+    """从 companion 生词本同步到 word cards"""
+    user_id = payload.get("user_id")
+    if not user_id:
+        raise HTTPException(400, "user_id required")
+    synced = await word_card_service.sync_from_companion(db, user_id)
+    return {"synced": synced}
+
+
+# ── 动态路由（放在静态路由之后，避免 /stats 等被 /:id 捕获） ──
 
 
 @router.get("/{card_id}")
@@ -121,49 +172,3 @@ async def review_word_card(card_id: str, payload: dict, db: AsyncSession = Depen
     if "error" in result:
         raise HTTPException(404, result["error"])
     return result
-
-
-@router.get("/review/queue")
-async def get_review_queue(
-    user_id: str = Query(..., description="用户ID"),
-    lang: str = Query("en", description="语言"),
-    limit: int = Query(20, ge=1, le=50, description="数量"),
-    db: AsyncSession = Depends(get_db),
-):
-    """获取待复习队列"""
-    queue = await word_card_service.get_review_queue(db, user_id, lang, limit)
-    return {"due_count": len(queue), "queue": queue}
-
-
-@router.post("/batch")
-async def batch_create_cards(payload: dict, db: AsyncSession = Depends(get_db)):
-    """批量创建词汇卡片"""
-    user_id = payload.get("user_id")
-    cards = payload.get("cards", [])
-    if not user_id or not cards:
-        raise HTTPException(400, "user_id and cards required")
-
-    results = await word_card_service.batch_create(db, user_id, cards)
-    return {"created": len(results), "cards": results}
-
-
-@router.get("/stats")
-async def get_word_card_stats(
-    user_id: str = Query(..., description="用户ID"),
-    lang: str = Query("en", description="语言"),
-    db: AsyncSession = Depends(get_db),
-):
-    """获取词汇卡片统计"""
-    stats = await word_card_service.get_stats(db, user_id, lang)
-    return stats
-
-
-@router.post("/sync-from-companion")
-async def sync_from_companion(payload: dict, db: AsyncSession = Depends(get_db)):
-    """从 companion 生词本同步到 word cards"""
-    user_id = payload.get("user_id")
-    if not user_id:
-        raise HTTPException(400, "user_id required")
-
-    count = await word_card_service.sync_from_companion(db, user_id)
-    return {"synced": count, "status": "done"}

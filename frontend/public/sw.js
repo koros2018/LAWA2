@@ -1,7 +1,7 @@
-// LAWA2 Service Worker - v4.5.0
+// LAWA2 Service Worker - v4.5.1
 // 离线缓存策略：App Shell + 静态资源
 
-const CACHE_NAME = 'lawa2-v4.5.0'
+const CACHE_NAME = 'lawa2-v4.5.1'
 const OFFLINE_PAGE = '/offline.html'
 
 // 核心资源缓存列表
@@ -32,12 +32,22 @@ self.addEventListener('activate', (event) => {
     })
   )
   self.clients.claim()
+  // 通知所有客户端强制刷新
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => client.postMessage({ type: 'CACHE_UPDATED' }))
+  })
 })
 
 // 网络请求策略：Stale-While-Revalidate（静态资源）+ Network-First（API）
 self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
+
+  // manifest.json：始终从网络获取（Network-First），防止缓存污染
+  if (url.pathname.endsWith('/manifest.json')) {
+    event.respondWith(networkFirst(request))
+    return
+  }
 
   // API 请求：Network-First
   if (url.pathname.startsWith('/api/')) {

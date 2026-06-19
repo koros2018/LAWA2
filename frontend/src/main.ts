@@ -16,6 +16,14 @@ if ('serviceWorker' in navigator) {
       })
       console.log('[SW] Registered:', registration.scope)
 
+      // 监听消息（SW 通知缓存更新）
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'CACHE_UPDATED') {
+          console.log('[SW] Cache updated, refreshing...')
+          window.location.reload()
+        }
+      })
+
       // 监听更新
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing

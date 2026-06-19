@@ -136,6 +136,13 @@ function formatDate(iso: string): string {
   })
 }
 
+function safeInterests(interests: unknown): string {
+  if (!interests) return '—'
+  if (Array.isArray(interests)) return interests.join(', ')
+  if (typeof interests === 'string') return interests
+  return String(interests)
+}
+
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
@@ -265,7 +272,7 @@ onMounted(() => {
             <div class="user-detail"><span class="detail-label">XP / 连续 · Streak</span><span class="detail-value">{{ user.growth_xp }} / {{ user.streak_days }}天 · {{ user.streak_days }}d</span></div>
             <div class="user-detail"><span class="detail-label">桥梁 · Bridge Level</span><span class="detail-value">{{ user.bridge_level }}</span></div>
             <div class="user-detail"><span class="detail-label">权限 · Permission</span><span class="detail-value"><span class="admin-badge" :class="{ admin: user.is_admin }">{{ user.is_admin ? '👑 Admin' : 'User' }}</span></span></div>
-            <div class="user-detail"><span class="detail-label">兴趣 · Interests</span><span class="detail-value text-ellipsis">{{ user.interests?.length ? user.interests.join(', ') : '—' }}</span></div>
+            <div class="user-detail"><span class="detail-label">兴趣 · Interests</span><span class="detail-value text-ellipsis">{{ safeInterests(user.interests) }}</span></div>
             <div class="user-detail"><span class="detail-label">注册时间 · Registered</span><span class="detail-value">{{ formatDate(user.created_at) }}</span></div>
           </div>
           <div class="user-actions">

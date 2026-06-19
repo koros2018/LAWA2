@@ -45,5 +45,8 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     is_admin: Mapped[bool] = mapped_column(default=False)
 
+    # 关系
+    conversations = relationship("Conversation", back_populates="user", lazy="selectin")
+
     def __repr__(self):
         return f"<User {self.username} lvl={self.habit_level} xp={self.growth_xp}>"

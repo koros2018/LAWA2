@@ -40,7 +40,7 @@ const userId = computed(() => session.user?.userId || '')
 async function loadHistory() {
   if (!userId.value) return
   try {
-    photos.value = await getPhotoHistory(userId.value)
+    photos.value = await getPhotoHistory()
   } catch (e: any) {
     handleApiError(e, '加载图片历史失败 · Load failed', 'Failed to load photo history')
   }

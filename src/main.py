@@ -25,6 +25,7 @@ from src.routes.word_card import router as word_card_router
 from src.routes.agent_main import router as agent_main_router
 from src.routes.agent_reminder import router as agent_reminder_router
 from src.routes.agent_photo import router as agent_photo_router
+from src.routes.conversation import router as conversation_router
 
 # 注意：src.models 必须在所有路由导入之后导入
 # 否则会导致循环导入，使路由注册失败
@@ -78,6 +79,7 @@ app.include_router(word_card_router)
 app.include_router(agent_main_router)
 app.include_router(agent_reminder_router)
 app.include_router(agent_photo_router)
+app.include_router(conversation_router)
 
 # 已移除：github_auth router（经常失效且无用）
 # from src.routes.github_auth import router as github_auth_router

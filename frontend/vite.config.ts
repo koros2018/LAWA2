@@ -21,5 +21,11 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    // 防止 SPA fallback 拦截 manifest.json
+    fs: {
+      strict: false,
+    },
+    origin: 'http://localhost:6291',
   },
+  appType: 'spa',
 })

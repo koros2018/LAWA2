@@ -39,6 +39,7 @@ const currentAgent = computed(() => {
 const mainSubItems = [
   { name: 'home', label: '首页', labelEn: 'Home', icon: '🌿' },
   { name: 'feed', label: '信息流', labelEn: 'Feed', icon: '📡' },
+  { name: 'conversation', label: '对话', labelEn: 'Chat', icon: '💬' },
   { name: 'bridge', label: '桥梁', labelEn: 'Bridge', icon: '🌉' },
   { name: 'word-cards', label: '词汇', labelEn: 'Words', icon: '📚' },
   { name: 'garden', label: '花园', labelEn: 'Garden', icon: '🌱' },

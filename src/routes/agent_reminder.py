@@ -57,13 +57,11 @@ async def list_events(
     db: AsyncSession = Depends(get_db),
 ):
     """获取提醒列表 · Get reminders"""
-    events = await reminder_engine.get_events(
+    events = await reminder_engine.list_events(
         user_id=user_id,
         start_date=start_date,
         end_date=end_date,
         event_type=event_type,
-        limit=limit,
-        db=db,
     )
     return {"status": "ok", "data": events}
 

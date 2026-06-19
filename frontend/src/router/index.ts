@@ -54,6 +54,14 @@ const routes = [
     meta: { title: '我的 · Profile', icon: '👤', requiresAuth: true, agent: 'main' },
   },
 
+  // ── AI 对话（v5.0.0） ──
+  {
+    path: '/conversation',
+    name: 'conversation',
+    component: () => import('@/views/ConversationPage.vue'),
+    meta: { title: '对话 · Conversation', icon: '💬', requiresAuth: true, agent: 'main' },
+  },
+
   // ── 事项提醒 Agent ──
   {
     path: '/reminder',

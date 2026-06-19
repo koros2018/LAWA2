@@ -54,6 +54,13 @@ function handleLogout() {
     router.push('/login')
   }
 }
+
+function formatInterests(interests: unknown): string {
+  if (!interests) return '—'
+  if (Array.isArray(interests)) return interests.join(', ')
+  if (typeof interests === 'string') return interests
+  return String(interests)
+}
 </script>
 
 <template>
@@ -110,8 +117,8 @@ function handleLogout() {
             <span class="is-badge" :class="health.trend">{{ healthLabel }}</span>
             <span class="is-trend">{{ trendIcon }}</span>
             <svg class="trend-sparkline" viewBox="0 0 60 16" aria-hidden="true">
-              <polyline points="0,{{ 16 - (health.trend === 'up' ? 4 : health.trend === 'down' ? 12 : 8) }} 20,{{ 16 - (health.trend === 'up' ? 2 : health.trend === 'down' ? 14 : 6) }} 40,{{ 16 - (health.trend === 'up' ? 1 : health.trend === 'down' ? 15 : 4) }} 60,{{ 16 - (health.trend === 'up' ? 0 : health.trend === 'down' ? 16 : 2) }}"
-                fill="none" stroke="{{ health.trend === 'up' ? '#4ade80' : health.trend === 'down' ? '#f87171' : '#a78bfa' }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline :points="`0,${16 - (health.trend === 'up' ? 4 : health.trend === 'down' ? 12 : 8)} 20,${16 - (health.trend === 'up' ? 2 : health.trend === 'down' ? 14 : 6)} 40,${16 - (health.trend === 'up' ? 1 : health.trend === 'down' ? 15 : 4)} 60,${16 - (health.trend === 'up' ? 0 : health.trend === 'down' ? 16 : 2)}`"
+                fill="none" :stroke="`${health.trend === 'up' ? '#4ade80' : health.trend === 'down' ? '#f87171' : '#a78bfa'}`" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
         </div>
@@ -161,9 +168,9 @@ function handleLogout() {
         <span class="pref-label">学习目标 · Target</span>
         <span class="pref-value">{{ user.learnLang === 'en' ? 'English' : '中文' }}</span>
       </div>
-      <div class="pref-row" v-if="user.interests?.length">
+      <div class="pref-row" v-if="user.interests">
         <span class="pref-label">兴趣 · Interests</span>
-        <span class="pref-value text-ellipsis">{{ user.interests.join(', ') }}</span>
+        <span class="pref-value text-ellipsis">{{ formatInterests(user.interests) }}</span>
       </div>
       <div class="pref-row" v-if="user.currentLevel">
         <span class="pref-label">水平 · Level</span>

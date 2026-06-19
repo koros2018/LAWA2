@@ -151,7 +151,7 @@ async def get_garden(
     user_id: str = Depends(get_current_user_id),
 ):
     """花园状态 · Garden status"""
-    result = await engine.get_garden_state(user_id)
+    result = await engine.get_garden_status(user_id)
     return {"status": "ok", "data": result}
 
 
@@ -357,3 +357,33 @@ async def get_vocab_stats(
 ):
     """获取词汇复习统计 · Get vocabulary stats"""
     return await vocabulary_service.get_review_stats(db, user_id, lang)
+
+
+# ── 社交场景（代理到 habit 引擎） ──
+
+@router.get("/social/adaptive")
+async def get_social_adaptive(
+    user_id: str = Depends(get_current_user_id),
+    lang_direction: str = "zh",
+):
+    """获取自适应社交场景 · Get adaptive social scene"""
+    from src.engine.trigger_engine import TriggerEngine
+    engine = TriggerEngine()
+    result = await engine.get_social_scene_by_level(user_id, lang_direction)
+    return {"status": "ok", "data": result}
+
+
+@router.post("/social/level")
+async def update_social_level(
+    payload: dict,
+    user_id: str = Depends(get_current_user_id),
+):
+    """更新社交场景理解度 · Update social scene level"""
+    from src.engine.trigger_engine import TriggerEngine
+    engine = TriggerEngine()
+    vocab_id = payload.get("vocab_id")
+    new_level = payload.get("new_level")
+    if not vocab_id or not new_level:
+        raise HTTPException(400, "vocab_id and new_level required")
+    await engine.update_social_level(db, user_id, vocab_id, new_level)
+    return {"status": "ok"}
